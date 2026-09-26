@@ -3,118 +3,74 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OrbSniper — farm Discord Orbs automatically</title>
-<meta name="description" content="Free open-source tool that completes Discord Quests for you and claims the Orbs. Trade Orbs for Nitro credit, avatar decorations and profile effects. No token needed.">
+<title>Free Discord Nitro with Orbs — auto-complete Discord Quests | OrbSniper</title>
+<meta name="description" content="Get Discord Nitro for free: OrbSniper completes Discord Quests automatically and farms Orbs while you're away. 1,400 Orbs = 3 days of Nitro. Free Windows app, open source, no token needed.">
+<meta name="keywords" content="free discord nitro, discord nitro free, how to get free nitro, discord orbs, farm discord orbs, discord quests, auto complete discord quests, discord quest completer, orbs farm, free avatar decorations">
+<meta name="robots" content="index, follow, max-image-preview:large">
 <link rel="canonical" href="https://syntaxixr.github.io/OrbSniper/">
+<link rel="alternate" hreflang="en" href="https://syntaxixr.github.io/OrbSniper/">
+<link rel="alternate" hreflang="ru" href="https://syntaxixr.github.io/OrbSniper/ru/">
+<link rel="alternate" hreflang="x-default" href="https://syntaxixr.github.io/OrbSniper/">
 
 <meta property="og:type" content="website">
-<meta property="og:title" content="OrbSniper — farm Discord Orbs automatically">
-<meta property="og:description" content="Completes Discord Quests for you and claims the Orbs. Free, open source, no token needed.">
+<meta property="og:site_name" content="OrbSniper">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="ru_RU">
+<meta property="og:title" content="Free Discord Nitro with Orbs — OrbSniper">
+<meta property="og:description" content="Completes Discord Quests for you and farms Orbs. Trade them for Nitro, decorations and profile effects. Free, open source, no token needed.">
 <meta property="og:image" content="https://syntaxixr.github.io/OrbSniper/social-preview.png">
 <meta property="og:url" content="https://syntaxixr.github.io/OrbSniper/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="OrbSniper — farm Discord Orbs automatically">
-<meta name="twitter:description" content="Completes Discord Quests for you and claims the Orbs. Free, open source, no token needed.">
+<meta name="twitter:title" content="Free Discord Nitro with Orbs — OrbSniper">
+<meta name="twitter:description" content="Completes Discord Quests for you and farms Orbs. Trade them for Nitro, decorations and profile effects. Free, open source, no token needed.">
 <meta name="twitter:image" content="https://syntaxixr.github.io/OrbSniper/social-preview.png">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "SoftwareApplication",
+      "name": "OrbSniper",
+      "description": "Completes Discord Quests automatically and farms Orbs that can be traded for Discord Nitro credit, avatar decorations and profile effects.",
+      "url": "https://syntaxixr.github.io/OrbSniper/",
+      "downloadUrl": "https://github.com/syntaxixr/OrbSniper/releases/latest",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Windows",
+      "inLanguage": ["en", "ru", "zh", "es", "pt", "de", "fr", "pl", "tr", "uk"],
+      "license": "https://opensource.org/licenses/MIT",
+      "image": "https://syntaxixr.github.io/OrbSniper/social-preview.png",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "author": { "@type": "Person", "name": "synaps_ss", "url": "https://github.com/syntaxixr" }
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "How do I get Discord Nitro for free?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Discord sells 3 days of Nitro credit for 1,400 Orbs in its own shop. Orbs come from Discord Quests — about 700 per quest — so two quests buy three days of Nitro. OrbSniper completes the quests for you." } },
+        { "@type": "Question", "name": "How do I farm Discord Orbs fast?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Complete every Discord Quest as soon as it appears. OrbSniper watches for new quests every 20 seconds, accepts them, completes them without installing any games and claims the Orbs." } },
+        { "@type": "Question", "name": "Can Discord Quests be completed automatically?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. OrbSniper handles video, play, activity and stream quests inside your own Discord client. It breaks Discord's rules and can get an account restricted, so use an alt account." } },
+        { "@type": "Question", "name": "Does OrbSniper need my Discord token?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. It never reads or asks for a token. It relaunches your installed Discord with a debugging port and every request is made by Discord itself." } }
+      ]
+    }
+  ]
+}
+</script>
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='12' fill='none' stroke='%23333944' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23ffab1a'/%3E%3C/svg%3E">
 
-<style>
-:root{
-  --bg:#08090c; --surface:#0e1116; --surface2:#161a21; --border:#23272f; --border-hi:#333944;
-  --muted:#98a1ae; --text:#f2f4f7; --accent:#ffab1a; --accent-hi:#ffc352; --accent-fg:#1a1204;
-  --ok:#5ecb84; --danger:#f0736c;
-  --ui:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
-  --mono:"Cascadia Mono",Consolas,ui-monospace,monospace;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:var(--ui);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
-a{color:var(--accent);text-decoration:none}
-a:hover{text-decoration:underline}
-.wrap{max-width:1060px;margin:0 auto;padding:0 24px}
-section{padding:72px 0}
-h1,h2,h3{line-height:1.2;letter-spacing:-.02em}
-h2{font-size:clamp(28px,4vw,38px);font-weight:700;margin-bottom:14px}
-.lead{color:var(--muted);font-size:18px;max-width:64ch}
-
-/* hero */
-.hero{padding:64px 0 56px;text-align:center;border-bottom:1px solid var(--border);
-  background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(255,171,26,.09),transparent 70%)}
-.hero img.logo{width:min(760px,100%);height:auto;border-radius:14px;border:1px solid var(--border)}
-.tagline{font-size:clamp(20px,3vw,26px);font-weight:600;margin-top:30px}
-.sub{color:var(--muted);margin-top:10px;font-size:17px}
-.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:30px}
-.btn{display:inline-flex;align-items:center;gap:9px;height:52px;padding:0 28px;border-radius:11px;
-  font-size:16px;font-weight:600;border:1px solid var(--border-hi);color:var(--text);
-  transition:background .18s,border-color .18s,transform .08s}
-.btn:hover{background:var(--surface2);border-color:#414855;text-decoration:none}
-.btn:active{transform:translateY(1px)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);
-  box-shadow:0 0 30px rgba(255,171,26,.22)}
-.btn.primary:hover{background:var(--accent-hi);border-color:var(--accent-hi)}
-.meta{color:var(--muted);font-size:14px;margin-top:16px}
-
-/* notices */
-.notice{display:flex;gap:12px;padding:15px 18px;border-radius:11px;margin-top:18px;
-  font-size:15px;line-height:1.55;text-align:left}
-.notice b{display:block;margin-bottom:2px}
-.notice.warn{border:1px solid rgba(240,115,108,.42);background:rgba(240,115,108,.07);color:var(--danger)}
-.notice.info{border:1px solid rgba(255,171,26,.42);background:rgba(255,171,26,.07);color:var(--accent)}
-.notice a{color:inherit;text-decoration:underline}
-.notice .ico{flex:none;font-size:19px;line-height:1.4}
-
-/* shots */
-.shots{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:34px}
-.shot{background:var(--surface);border:1px solid var(--border);border-radius:13px;overflow:hidden}
-.shot img{display:block;width:100%;height:auto}
-.shot p{padding:14px 16px;color:var(--muted);font-size:14.5px;border-top:1px solid var(--border)}
-.shot p b{color:var(--text);display:block;margin-bottom:2px;font-size:15px}
-
-/* orbs table */
-.tbl{width:100%;border-collapse:collapse;margin-top:22px;font-size:15.5px}
-.tbl th,.tbl td{padding:12px 16px;border:1px solid var(--border);text-align:left}
-.tbl th{background:var(--surface2);font-weight:600;font-size:14px;letter-spacing:.02em;color:var(--muted)}
-.tbl td:last-child{color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
-.tbl tr:nth-child(even) td{background:rgba(255,255,255,.012)}
-
-/* features */
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:32px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:22px 24px}
-.card h3{font-size:17px;font-weight:600;margin-bottom:7px}
-.card p{color:var(--muted);font-size:15px}
-.card .n{color:var(--accent);font-family:var(--mono);font-size:13px;display:block;margin-bottom:9px}
-
-/* steps */
-ol.steps{list-style:none;counter-reset:s;margin-top:28px;display:flex;flex-direction:column;gap:16px}
-ol.steps li{counter-increment:s;position:relative;padding-left:46px;font-size:16px}
-ol.steps li::before{content:counter(s);position:absolute;left:0;top:-1px;width:30px;height:30px;
-  display:grid;place-items:center;border-radius:50%;background:var(--surface2);
-  color:var(--accent);font-size:14px;font-weight:700}
-ol.steps b{display:block}
-ol.steps span{color:var(--muted);font-size:15px}
-
-/* footer */
-footer{border-top:1px solid var(--border);padding:40px 0 56px;text-align:center;color:var(--muted);font-size:14.5px}
-footer .links{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
-footer .links a{padding:8px 15px;border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:14px}
-footer .links a:hover{color:var(--text);border-color:var(--border-hi);text-decoration:none}
-code.addr{display:inline-block;margin-top:6px;padding:8px 13px;background:var(--surface);
-  border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:13px;
-  color:var(--text);user-select:all;word-break:break-all}
-
-@media(max-width:720px){
-  section{padding:52px 0}
-  .shots{grid-template-columns:1fr}
-  .btn{width:100%;justify-content:center}
-}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header class="hero">
   <div class="wrap">
-    <img class="logo" src="logo.png" alt="OrbSniper">
+    <a class="lang" href="ru/" hreflang="ru" lang="ru">Русский</a>
+    <img class="logo" src="logo.png" alt="OrbSniper — free Discord Nitro with Orbs">
+    <h1>Free Discord Nitro — <em>farm Orbs on autopilot</em></h1>
     <p class="tagline">Discord Quests, done while you're away</p>
     <p class="sub">It accepts the quests, completes them and claims your Orbs — inside your own Discord client.<br>No token, no game installs, no 500&nbsp;GB downloads.</p>
 
@@ -203,13 +159,31 @@ code.addr{display:inline-block;margin-top:6px;padding:8px 13px;background:var(--
   </div>
 </section>
 
+<section style="padding-top:0">
+  <div class="wrap">
+    <h2>FAQ</h2>
+    <div class="faq">
+      <details open><summary>How do I get Discord Nitro for free?</summary>
+        <p>Discord sells <b>3 days of Nitro credit for 1,400 Orbs</b> in its own shop. Orbs come from Discord Quests — about 700 per quest — so two quests buy three days of Nitro. OrbSniper completes the quests for you.</p></details>
+      <details><summary>How do I farm Discord Orbs fast?</summary>
+        <p>Complete every quest as soon as it appears. OrbSniper checks for new quests every 20 seconds, accepts them, completes them without installing any games and claims the Orbs.</p></details>
+      <details><summary>Can Discord Quests be completed automatically?</summary>
+        <p>Yes — video, play, activity and stream quests, inside your own Discord client. It breaks Discord's rules and can get an account restricted, so use an alt account.</p></details>
+      <details><summary>Does it need my Discord token?</summary>
+        <p>No. It never reads or asks for a token. It relaunches your installed Discord with a debugging port and every request is made by Discord itself.</p></details>
+      <details><summary>Is it a Nitro generator?</summary>
+        <p>No, and those are scams. OrbSniper earns real Orbs from real Discord Quests, and you spend them in Discord's own shop.</p></details>
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="wrap">
     <div class="links">
       <a href="https://github.com/syntaxixr/OrbSniper">GitHub</a>
       <a href="https://github.com/syntaxixr/OrbSniper/releases/latest">Download</a>
       <a href="https://t.me/synaps_ss">Telegram</a>
-      <a href="https://github.com/syntaxixr/OrbSniper/blob/main/README.ru.md">Русская версия</a>
+      <a href="ru/">Русская версия</a>
     </div>
 
     <p>Made by <b style="color:var(--text)">synaps_ss</b> · MIT licence · © 2026</p>

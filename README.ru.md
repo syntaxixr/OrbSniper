@@ -2,7 +2,9 @@
 
 <img src="docs/logo.png" alt="OrbSniper" width="820">
 
-**Русский** · [English](README.md)
+**Русский** · [English](README.md) · [Сайт](https://syntaxixr.github.io/OrbSniper/ru/)
+
+## Discord Nitro бесплатно за орбы — автовыполнение квестов Discord
 
 ### Тёмное окно, одна кнопка
 

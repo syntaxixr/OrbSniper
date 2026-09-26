@@ -1,0 +1,106 @@
+:root{
+  --bg:#08090c; --surface:#0e1116; --surface2:#161a21; --border:#23272f; --border-hi:#333944;
+  --muted:#98a1ae; --text:#f2f4f7; --accent:#ffab1a; --accent-hi:#ffc352; --accent-fg:#1a1204;
+  --ok:#5ecb84; --danger:#f0736c;
+  --ui:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --mono:"Cascadia Mono",Consolas,ui-monospace,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--ui);font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+section{padding:72px 0}
+h1,h2,h3{line-height:1.2;letter-spacing:-.02em}
+h2{font-size:clamp(28px,4vw,38px);font-weight:700;margin-bottom:14px}
+.lead{color:var(--muted);font-size:18px;max-width:64ch}
+
+/* hero */
+.hero{padding:64px 0 56px;text-align:center;border-bottom:1px solid var(--border);
+  background:radial-gradient(ellipse 70% 60% at 50% 0%,rgba(255,171,26,.09),transparent 70%)}
+.hero img.logo{width:min(760px,100%);height:auto;border-radius:14px;border:1px solid var(--border)}
+.tagline{font-size:clamp(20px,3vw,26px);font-weight:600;margin-top:30px}
+.sub{color:var(--muted);margin-top:10px;font-size:17px}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+.btn{display:inline-flex;align-items:center;gap:9px;height:52px;padding:0 28px;border-radius:11px;
+  font-size:16px;font-weight:600;border:1px solid var(--border-hi);color:var(--text);
+  transition:background .18s,border-color .18s,transform .08s}
+.btn:hover{background:var(--surface2);border-color:#414855;text-decoration:none}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);
+  box-shadow:0 0 30px rgba(255,171,26,.22)}
+.btn.primary:hover{background:var(--accent-hi);border-color:var(--accent-hi)}
+.meta{color:var(--muted);font-size:14px;margin-top:16px}
+
+/* notices */
+.notice{display:flex;gap:12px;padding:15px 18px;border-radius:11px;margin-top:18px;
+  font-size:15px;line-height:1.55;text-align:left}
+.notice b{display:block;margin-bottom:2px}
+.notice.warn{border:1px solid rgba(240,115,108,.42);background:rgba(240,115,108,.07);color:var(--danger)}
+.notice.info{border:1px solid rgba(255,171,26,.42);background:rgba(255,171,26,.07);color:var(--accent)}
+.notice a{color:inherit;text-decoration:underline}
+.notice .ico{flex:none;font-size:19px;line-height:1.4}
+
+/* shots */
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:34px}
+.shot{background:var(--surface);border:1px solid var(--border);border-radius:13px;overflow:hidden}
+.shot img{display:block;width:100%;height:auto}
+.shot p{padding:14px 16px;color:var(--muted);font-size:14.5px;border-top:1px solid var(--border)}
+.shot p b{color:var(--text);display:block;margin-bottom:2px;font-size:15px}
+
+/* orbs table */
+.tbl{width:100%;border-collapse:collapse;margin-top:22px;font-size:15.5px}
+.tbl th,.tbl td{padding:12px 16px;border:1px solid var(--border);text-align:left}
+.tbl th{background:var(--surface2);font-weight:600;font-size:14px;letter-spacing:.02em;color:var(--muted)}
+.tbl td:last-child{color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl tr:nth-child(even) td{background:rgba(255,255,255,.012)}
+
+/* features */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:32px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:22px 24px}
+.card h3{font-size:17px;font-weight:600;margin-bottom:7px}
+.card p{color:var(--muted);font-size:15px}
+.card .n{color:var(--accent);font-family:var(--mono);font-size:13px;display:block;margin-bottom:9px}
+
+/* steps */
+ol.steps{list-style:none;counter-reset:s;margin-top:28px;display:flex;flex-direction:column;gap:16px}
+ol.steps li{counter-increment:s;position:relative;padding-left:46px;font-size:16px}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:-1px;width:30px;height:30px;
+  display:grid;place-items:center;border-radius:50%;background:var(--surface2);
+  color:var(--accent);font-size:14px;font-weight:700}
+ol.steps b{display:block}
+ol.steps span{color:var(--muted);font-size:15px}
+
+/* footer */
+footer{border-top:1px solid var(--border);padding:40px 0 56px;text-align:center;color:var(--muted);font-size:14.5px}
+footer .links{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+footer .links a{padding:8px 15px;border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:14px}
+footer .links a:hover{color:var(--text);border-color:var(--border-hi);text-decoration:none}
+code.addr{display:inline-block;margin-top:6px;padding:8px 13px;background:var(--surface);
+  border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:13px;
+  color:var(--text);user-select:all;word-break:break-all}
+
+@media(max-width:720px){
+  section{padding:52px 0}
+  .shots{grid-template-columns:1fr}
+  .btn{width:100%;justify-content:center}
+}
+
+/* h1 in hero */
+.hero h1{font-size:clamp(26px,4.2vw,40px);font-weight:700;margin-top:30px}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero .tagline{margin-top:10px}
+.lang{position:absolute;top:18px;right:24px;font-size:14px;color:var(--muted);
+  padding:6px 12px;border:1px solid var(--border);border-radius:8px}
+.lang:hover{color:var(--text);border-color:var(--border-hi);text-decoration:none}
+.hero{position:relative}
+
+/* faq */
+.faq{margin-top:26px;display:flex;flex-direction:column;gap:10px}
+.faq details{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:0 20px}
+.faq summary{cursor:pointer;padding:16px 0;font-weight:600;font-size:16px;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"+";color:var(--accent);display:inline-block;width:22px;font-family:var(--mono)}
+.faq details[open] summary::before{content:"−"}
+.faq details p{color:var(--muted);font-size:15px;padding:0 0 18px 22px}

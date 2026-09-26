@@ -2,7 +2,9 @@
 
 <img src="docs/logo.png" alt="OrbSniper" width="820">
 
-**English** · [Русский](README.ru.md)
+**English** · [Русский](README.ru.md) · [Website](https://syntaxixr.github.io/OrbSniper/)
+
+## Free Discord Nitro with Orbs — Discord Quest auto-completer
 
 ### One dark window, one button
 
