@@ -34,6 +34,9 @@
     "electron": "^44.0.0",
     "electron-builder": "^26.15.3"
   },
+  "overrides": {
+    "tar": "^7.6.0"
+  },
   "build": {
     "appId": "com.synaps.orbsniper",
     "productName": "OrbSniper",
