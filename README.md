@@ -187,7 +187,6 @@ It can. Discord detects quest automation and punishes it — warning, quest rest
 [![Telegram](https://img.shields.io/badge/Telegram-@synaps__ss-229ED9?logo=telegram&logoColor=white)](https://t.me/synaps_ss)
 [![GitHub](https://img.shields.io/badge/GitHub-syntaxixr-181717?logo=github&logoColor=white)](https://github.com/syntaxixr)
 
-**Idea, code, design and translations — all original work.**
 
 Questions, bugs, ideas: [@synaps_ss](https://t.me/synaps_ss) on Telegram
 
@@ -196,44 +195,6 @@ Questions, bugs, ideas: [@synaps_ss](https://t.me/synaps_ss) on Telegram
 ## Terms of use
 
 Free and open source under [MIT](LICENSE). Use it, study it, change it for yourself — all allowed. But one human request:
-
-> [!IMPORTANT]
-> ### 🚫 Don't re-upload this as your own
->
-> If you post OrbSniper anywhere else — forums, Telegram channels, file hosts, roundups, videos — **credit the author and link the original:**
->
-> - **Author:** synaps_ss — Telegram [@synaps_ss](https://t.me/synaps_ss)
-> - **Original:** https://github.com/syntaxixr/OrbSniper
->
-> This isn't a whim: the MIT licence explicitly requires keeping the copyright notice in every copy and derivative work. Publishing it under your own name, stripping the copyright or selling it breaks the licence.
->
-> Want to improve it? Fork it or open a pull request — that way everyone sees your changes and the author stays the author.
-
-**Fine, no questions asked:** using it, forking with credit intact, changing the code for yourself, sending friends a link to this repo.
-
-**Please don't:** re-upload it as your own work, strip mentions of the author, sell it, or ship your own builds without linking the original.
-
-## 💸 Support the author
-
-The project is free and will stay that way. If OrbSniper saved you time and farmed you some Orbs, you can thank the author with a coin. Not required, but very much appreciated.
-
-<div align="center">
-
-### USDT · TRON network (TRC20)
-
-```
-TJXGAkovUoA2z9C7mWBiB9SGLVQu6oSsf
-```
-
-![Donate QR — USDT TRC20](docs/donate-qr.png)
-
-**Scan the QR with any wallet**
-
-⚠️ **TRC20 (TRON) only.** Send it through another network and the money is gone for good.
-
-No crypto but still want to help? Star the repo and tell your friends — that counts too.
-
-</div>
 
 ## Disclaimer
 
