@@ -1,13 +1,18 @@
 # OrbSniper portable launcher.
 #
 # Replaces electron-builder's stock portable.nsi (see scripts/dist.js). The
-# stock one unpacks the whole app (~250 MB) into %TEMP% on EVERY launch and
+# stock one unpacks the whole app (~320 MB) into %TEMP% on EVERY launch and
 # deletes it on exit, which is why OrbSniper.exe used to take ~8 seconds to
 # open. This one unpacks once into a per-build cache folder and afterwards
-# just starts the app from there: the second launch onwards is instant.
+# just starts the app from there.
 #
-# The cache folder name carries the hash of the embedded app archive, so a new
-# build can never run stale files, and older builds are cleaned up.
+# The unpack itself is a single pass: the app files are stored in the exe
+# with NSIS's own zlib compression ("useZip" in package.json) and written
+# straight into the cache folder. The stock layout first copies a 7z archive
+# out of the exe and then runs a much slower LZMA decoder over it.
+#
+# The cache folder name carries a build id, so a new build can never run
+# stale files, and older builds are cleaned up.
 
 !include "common.nsh"
 
@@ -16,31 +21,24 @@ WindowIcon Off
 AutoCloseWindow True
 RequestExecutionLevel ${REQUEST_EXECUTION_LEVEL}
 
-!ifndef APP_64
-  !error "portable.nsi expects an x64 7z app package"
+!ifndef APP_DIR_64
+  !error "portable.nsi expects the app as plain files: set portable.useZip in package.json"
+!endif
+!ifndef BUILD_ID
+  !error "BUILD_ID is not defined: build with npm run dist (scripts/dist.js)"
 !endif
 
 !define CACHE_ROOT "$LOCALAPPDATA\${PRODUCT_FILENAME}\runtime"
-
-Var cacheDir
-
-!macro computeCacheDir
-  !ifdef APP_64_HASH
-    StrCpy $R9 "${APP_64_HASH}" 16
-    StrCpy $cacheDir "${CACHE_ROOT}\${VERSION}-$R9"
-  !else
-    StrCpy $cacheDir "${CACHE_ROOT}\${VERSION}"
-  !endif
-!macroend
+!define CACHE_DIR "${CACHE_ROOT}\${VERSION}-${BUILD_ID}"
 
 Function launchApp
   System::Call 'Kernel32::SetEnvironmentVariable(t, t)i ("PORTABLE_EXECUTABLE_DIR", "$EXEDIR").r0'
   System::Call 'Kernel32::SetEnvironmentVariable(t, t)i ("PORTABLE_EXECUTABLE_FILE", "$EXEPATH").r0'
   System::Call 'Kernel32::SetEnvironmentVariable(t, t)i ("PORTABLE_EXECUTABLE_APP_FILENAME", "${APP_FILENAME}").r0'
   ${StdUtils.GetAllParameters} $R0 0
-  SetOutPath $cacheDir
+  SetOutPath "${CACHE_DIR}"
   # Exec, not ExecWait: this stub has nothing left to do once the app is up.
-  Exec '"$cacheDir\${APP_EXECUTABLE_FILENAME}" $R0'
+  Exec '"${CACHE_DIR}\${APP_EXECUTABLE_FILENAME}" $R0'
 FunctionEnd
 
 Function pruneOldBuilds
@@ -49,7 +47,7 @@ Function pruneOldBuilds
     StrCmp $1 "" done
     StrCmp $1 "." next
     StrCmp $1 ".." next
-    StrCmp "${CACHE_ROOT}\$1" $cacheDir next
+    StrCmp $1 "${VERSION}-${BUILD_ID}" next
     # A build that is still running stays locked and simply survives until
     # the next launch.
     RMDir /r "${CACHE_ROOT}\$1"
@@ -62,11 +60,10 @@ FunctionEnd
 
 Function .onInit
   !insertmacro check64BitAndSetRegView
-  !insertmacro computeCacheDir
 
   # Fast path: this exact build is already unpacked.
-  ${If} ${FileExists} "$cacheDir\.complete"
-  ${AndIf} ${FileExists} "$cacheDir\${APP_EXECUTABLE_FILENAME}"
+  ${If} ${FileExists} "${CACHE_DIR}\.complete"
+  ${AndIf} ${FileExists} "${CACHE_DIR}\${APP_EXECUTABLE_FILENAME}"
     Call launchApp
     Quit
   ${EndIf}
@@ -87,39 +84,26 @@ Function .onInit
 FunctionEnd
 
 Function unpack
-  InitPluginsDir
   # Only the first launch gets here, so say why it takes a moment.
   # The banner is small: one short line in both languages is all that fits.
   Banner::show /NOUNLOAD "Unpacking… / Распаковка…"
 
-  StrCpy $INSTDIR $cacheDir
-  RMDir /r $INSTDIR
-  SetOutPath $INSTDIR
+  RMDir /r "${CACHE_DIR}"
+  SetOutPath "${CACHE_DIR}"
+  ClearErrors
+  File /r "${APP_DIR_64}\*.*"
 
-  # The archive is already 7z-compressed: storing it again saves nothing.
-  !ifdef COMPRESS
-    SetCompress off
-  !endif
-  File /oname=$PLUGINSDIR\app-64.7z "${APP_64}"
-  !ifdef COMPRESS
-    SetCompress "${COMPRESS}"
-  !endif
-
-  # Straight into the cache folder: the stock macro unpacks into a scratch
-  # folder first and copies everything over, which doubles the disk work.
-  Nsis7z::Extract "$PLUGINSDIR\app-64.7z"
-  Delete "$PLUGINSDIR\app-64.7z"
-
-  ${IfNot} ${FileExists} "$INSTDIR\${APP_EXECUTABLE_FILENAME}"
+  ${If} ${Errors}
+  ${OrIfNot} ${FileExists} "${CACHE_DIR}\${APP_EXECUTABLE_FILENAME}"
     Banner::destroy
     MessageBox MB_OK|MB_ICONEXCLAMATION "$(decompressionFailed)"
-    RMDir /r $INSTDIR
+    RMDir /r "${CACHE_DIR}"
     Quit
   ${EndIf}
 
   # Written last: an unpack that was interrupted is simply redone next time.
-  FileOpen $0 "$INSTDIR\.complete" w
-  FileWrite $0 "${VERSION}"
+  FileOpen $0 "${CACHE_DIR}\.complete" w
+  FileWrite $0 "${VERSION}-${BUILD_ID}"
   FileClose $0
 
   Call pruneOldBuilds

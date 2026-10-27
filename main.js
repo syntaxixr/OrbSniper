@@ -764,17 +764,20 @@ function createWindow() {
     minHeight: 600,
     frame: false,
     resizable: true,
-    backgroundColor: "#000000",
+    // Shown straight away instead of on ready-to-show: the window is up a
+    // good part of a second sooner, and painting it in the page's own
+    // background colour means there is no white flash before the UI arrives.
+    backgroundColor: "#06070a",
     icon: path.join(__dirname, "icon.ico"),
-    show: false,
+    show: true,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      spellcheck: false
     }
   });
   win.setMenuBarVisibility(false);
-  win.once("ready-to-show", () => win.show());
   win.loadFile(path.join(__dirname, "renderer", "index.html"));
   win.on("closed", () => { win = null; });
 }

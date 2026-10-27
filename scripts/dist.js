@@ -26,9 +26,33 @@ if (!stock || !fs.existsSync(path.join(stock, "portable.nsi"))) {
   process.exit(1);
 }
 
+// The launcher caches the unpacked app in a folder named after this id, so it
+// has to change whenever anything that ends up inside the exe changes.
+function buildId() {
+  const crypto = require("crypto");
+  const h = crypto.createHash("sha256");
+  const add = (p) => {
+    const full = path.join(ROOT, p);
+    if (fs.statSync(full).isDirectory()) {
+      for (const e of fs.readdirSync(full).sort()) add(path.join(p, e));
+    } else {
+      h.update(p.replace(/\\/g, "/") + "\0");
+      h.update(fs.readFileSync(full));
+    }
+  };
+  for (const p of ["main.js", "preload.js", "quest.js", "renderer", "icon.ico", "package.json"]) add(p);
+  for (const dep of ["electron", "ws"]) {
+    h.update(dep + "@" + require(path.join(ROOT, "node_modules", dep, "package.json")).version + "\0");
+  }
+  return h.digest("hex").slice(0, 16).toUpperCase();
+}
+
+const id = buildId();
 fs.rmSync(COPY, { recursive: true, force: true });
 fs.cpSync(stock, COPY, { recursive: true });
-fs.copyFileSync(OURS, path.join(COPY, "portable.nsi"));
+fs.writeFileSync(path.join(COPY, "portable.nsi"),
+  `!define BUILD_ID "${id}"\n` + fs.readFileSync(OURS, "utf8"));
+console.log("  build id " + id);
 
 nsisUtil.nsisTemplatesDir = COPY;
 if (nsisUtil.nsisTemplatesDir !== COPY) {

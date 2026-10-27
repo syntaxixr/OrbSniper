@@ -69,7 +69,8 @@
       ]
     },
     "portable": {
-      "artifactName": "OrbSniper.exe"
+      "artifactName": "OrbSniper.exe",
+      "useZip": true
     },
     "electronLanguages": [
       "en-US",

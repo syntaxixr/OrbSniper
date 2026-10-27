@@ -380,10 +380,14 @@ async function runEngine(opts) {
   });
   await check("the launcher unpacks once and reuses the cache", () => {
     const nsi = read("build/portable.nsi");
-    assert(nsi.includes('${FileExists} "$cacheDir\\.complete"'), "no fast path for an already unpacked build");
-    assert(nsi.indexOf('FileOpen $0 "$INSTDIR\\.complete"') > nsi.indexOf("Nsis7z::Extract"),
+    assert(nsi.includes('${FileExists} "${CACHE_DIR}\\.complete"'), "no fast path for an already unpacked build");
+    assert(nsi.indexOf('FileOpen $0 "${CACHE_DIR}\\.complete"') > nsi.indexOf("File /r"),
       "the cache is marked complete before the unpack has finished");
-    assert(nsi.includes("APP_64_HASH"), "the cache folder is not tied to the build, a new exe could run old files");
+    assert(/CACHE_DIR "[^"]*\$\{BUILD_ID\}"/.test(nsi) && read("scripts/dist.js").includes("!define BUILD_ID"),
+      "the cache folder is not tied to the build, a new exe could run old files");
+    assert(!nsi.includes("Nsis7z"), "back to the 7z layout: the first unpack is twice as slow");
+    const pkg = JSON.parse(read("package.json"));
+    assert(pkg.build.portable.useZip === true, "portable.useZip is off: the launcher needs the app as plain files");
     assert(!/^\s*ExecWait\b/m.test(nsi), "the launcher waits for the app, keeping a stub process around");
     assert(nsi.includes("CreateMutex"), "two quick double-clicks could unpack into the same folder at once");
   });
