@@ -1,15 +1,14 @@
 # OrbSniper portable launcher.
 #
 # Replaces electron-builder's stock portable.nsi (see scripts/dist.js). The
-# stock one unpacks the whole app (~320 MB) into %TEMP% on EVERY launch and
-# deletes it on exit, which is why OrbSniper.exe used to take ~8 seconds to
-# open. This one unpacks once into a per-build cache folder and afterwards
-# just starts the app from there.
+# stock one unpacks the whole app into %TEMP% on EVERY launch and deletes it
+# on exit, which is why OrbSniper.exe used to take ~8 seconds to open. This
+# one unpacks once into a per-build cache folder and afterwards just starts
+# the app from there.
 #
-# The unpack itself is a single pass: the app files are stored in the exe
-# with NSIS's own zlib compression ("useZip" in package.json) and written
-# straight into the cache folder. The stock layout first copies a 7z archive
-# out of the exe and then runs a much slower LZMA decoder over it.
+# The app is embedded as a 7z archive: the smallest exe we can ship. It is
+# unpacked straight into the cache folder; the stock macro unpacks into a
+# scratch folder first and copies everything over, doubling the disk work.
 #
 # The cache folder name carries a build id, so a new build can never run
 # stale files, and older builds are cleaned up.
@@ -21,8 +20,8 @@ WindowIcon Off
 AutoCloseWindow True
 RequestExecutionLevel ${REQUEST_EXECUTION_LEVEL}
 
-!ifndef APP_DIR_64
-  !error "portable.nsi expects the app as plain files: set portable.useZip in package.json"
+!ifndef APP_64
+  !error "portable.nsi expects an x64 7z app package: leave portable.useZip off"
 !endif
 !ifndef BUILD_ID
   !error "BUILD_ID is not defined: build with npm run dist (scripts/dist.js)"
@@ -84,17 +83,27 @@ Function .onInit
 FunctionEnd
 
 Function unpack
+  InitPluginsDir
   # Only the first launch gets here, so say why it takes a moment.
   # The banner is small: one short line in both languages is all that fits.
   Banner::show /NOUNLOAD "Unpacking… / Распаковка…"
 
   RMDir /r "${CACHE_DIR}"
   SetOutPath "${CACHE_DIR}"
-  ClearErrors
-  File /r "${APP_DIR_64}\*.*"
 
-  ${If} ${Errors}
-  ${OrIfNot} ${FileExists} "${CACHE_DIR}\${APP_EXECUTABLE_FILENAME}"
+  # The archive is already 7z-compressed: compressing it again saves nothing.
+  !ifdef COMPRESS
+    SetCompress off
+  !endif
+  File /oname=$PLUGINSDIR\app-64.7z "${APP_64}"
+  !ifdef COMPRESS
+    SetCompress "${COMPRESS}"
+  !endif
+
+  Nsis7z::Extract "$PLUGINSDIR\app-64.7z"
+  Delete "$PLUGINSDIR\app-64.7z"
+
+  ${IfNot} ${FileExists} "${CACHE_DIR}\${APP_EXECUTABLE_FILENAME}"
     Banner::destroy
     MessageBox MB_OK|MB_ICONEXCLAMATION "$(decompressionFailed)"
     RMDir /r "${CACHE_DIR}"

@@ -131,10 +131,10 @@ npm run dist
 
 or just run `build.bat`. You get:
 
-- `dist\OrbSniper.exe` — single portable file, fine for a USB stick. On first launch it unpacks itself once into `%LOCALAPPDATA%\OrbSniper\runtime` (~5 s); after that it starts in about half a second. A new build gets its own folder and the old one is cleaned up.
+- `dist\OrbSniper.exe` — single portable file, fine for a USB stick. On first launch it unpacks itself once into `%LOCALAPPDATA%\OrbSniper\runtime` (~6 s); after that it starts in about a third of a second. A new build gets its own folder and the old one is cleaned up.
 - `dist\win-unpacked\` — the unpacked build. Copy the folder anywhere and make a shortcut to `OrbSniper.exe`.
 
-`npm run dist` goes through `scripts/dist.js`, which swaps electron-builder's stock portable launcher for `build/portable.nsi`. The stock one unpacked the whole app into a temp folder on every single launch, which is where the old 8-second start came from.
+`npm run dist` goes through `scripts/dist.js`, which swaps electron-builder's stock portable launcher for `build/portable.nsi`. The stock one unpacked the whole app into a temp folder on every single launch, which is where the old 8-second start came from. `scripts/after-pack.js` then drops parts of Electron the app never uses (WebGPU and Vulkan libraries, built-in sounds), which keeps the exe under 80 MB.
 
 ## Controls
 

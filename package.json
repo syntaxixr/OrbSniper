@@ -69,12 +69,13 @@
       ]
     },
     "portable": {
-      "artifactName": "OrbSniper.exe",
-      "useZip": true
+      "artifactName": "OrbSniper.exe"
     },
     "electronLanguages": [
       "en-US",
       "ru"
-    ]
+    ],
+    "compression": "maximum",
+    "afterPack": "scripts/after-pack.js"
   }
 }

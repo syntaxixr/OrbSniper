@@ -381,15 +381,26 @@ async function runEngine(opts) {
   await check("the launcher unpacks once and reuses the cache", () => {
     const nsi = read("build/portable.nsi");
     assert(nsi.includes('${FileExists} "${CACHE_DIR}\\.complete"'), "no fast path for an already unpacked build");
-    assert(nsi.indexOf('FileOpen $0 "${CACHE_DIR}\\.complete"') > nsi.indexOf("File /r"),
+    assert(nsi.indexOf('FileOpen $0 "${CACHE_DIR}\\.complete"') > nsi.indexOf("Nsis7z::Extract"),
       "the cache is marked complete before the unpack has finished");
     assert(/CACHE_DIR "[^"]*\$\{BUILD_ID\}"/.test(nsi) && read("scripts/dist.js").includes("!define BUILD_ID"),
       "the cache folder is not tied to the build, a new exe could run old files");
-    assert(!nsi.includes("Nsis7z"), "back to the 7z layout: the first unpack is twice as slow");
     const pkg = JSON.parse(read("package.json"));
-    assert(pkg.build.portable.useZip === true, "portable.useZip is off: the launcher needs the app as plain files");
+    assert(!pkg.build.portable.useZip, "portable.useZip is on: the exe grows by half and the launcher expects 7z");
     assert(!/^\s*ExecWait\b/m.test(nsi), "the launcher waits for the app, keeping a stub process around");
     assert(nsi.includes("CreateMutex"), "two quick double-clicks could unpack into the same folder at once");
+  });
+  await check("unused Electron parts are dropped, licences and essentials are kept", () => {
+    const pkg = JSON.parse(read("package.json"));
+    assert(pkg.build.afterPack === "scripts/after-pack.js", "the afterPack hook is not wired up: the exe gets fatter");
+    const hook = read("scripts/after-pack.js");
+    const list = hook.slice(hook.indexOf("const UNUSED"), hook.indexOf("];", hook.indexOf("const UNUSED")));
+    for (const f of ["dxcompiler.dll", "vk_swiftshader.dll", "chrome_200_percent.pak"]) {
+      assert(list.includes(`"${f}"`), f + " is no longer dropped");
+    }
+    for (const f of ["LICENSES.chromium.html", "LICENSE.electron.txt", "icudtl.dat", "resources.pak", "ffmpeg.dll", "chrome_100_percent.pak"]) {
+      assert(!list.includes(`"${f}"`), f + " must stay in the build");
+    }
   });
 
   console.log("\nDiscord version picking");

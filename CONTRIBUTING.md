@@ -41,6 +41,7 @@ Then:
 | `renderer/i18n.js` | Every piece of UI text, ten languages |
 | `test/run.js` | The checks behind `npm test` and CI |
 | `scripts/dist.js` | Release build: electron-builder with our portable launcher |
+| `scripts/after-pack.js` | Drops unused parts of Electron to keep the exe small |
 | `build/portable.nsi` | The portable launcher: unpacks once, then starts instantly |
 | `build/icon.svg` | Source of the app icon, favicon and logo |
 

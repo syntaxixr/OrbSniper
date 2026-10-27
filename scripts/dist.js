@@ -40,7 +40,7 @@ function buildId() {
       h.update(fs.readFileSync(full));
     }
   };
-  for (const p of ["main.js", "preload.js", "quest.js", "renderer", "icon.ico", "package.json"]) add(p);
+  for (const p of ["main.js", "preload.js", "quest.js", "renderer", "icon.ico", "package.json", "scripts/after-pack.js"]) add(p);
   for (const dep of ["electron", "ws"]) {
     h.update(dep + "@" + require(path.join(ROOT, "node_modules", dep, "package.json")).version + "\0");
   }
