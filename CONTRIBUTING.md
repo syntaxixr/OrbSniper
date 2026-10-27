@@ -25,7 +25,7 @@ Then:
 
 1. Branch off `main`.
 2. Keep the style of the file you're editing — comments in English, two-space indent, no build step.
-3. Run the app and click through what you changed. There is no test suite; a screenshot in the PR helps.
+3. Run `npm test` (no Discord or network needed), then run the app and click through what you changed. A screenshot in the PR helps.
 4. If you touch the UI text, add the strings to **all ten languages** in `renderer/i18n.js`. A missing key falls back to Russian, which looks broken.
 
 ## Project layout
@@ -39,6 +39,10 @@ Then:
 | `renderer/style.css` | All styling |
 | `renderer/app.js` | Window logic |
 | `renderer/i18n.js` | Every piece of UI text, ten languages |
+| `test/run.js` | The checks behind `npm test` and CI |
+| `scripts/dist.js` | Release build: electron-builder with our portable launcher |
+| `build/portable.nsi` | The portable launcher: unpacks once, then starts instantly |
+| `build/icon.svg` | Source of the app icon, favicon and logo |
 
 ## What won't be merged
 

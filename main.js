@@ -1,5 +1,5 @@
 /*!
- * OrbSniper v1.5.0 - Discord Orb farmer (GUI)
+ * OrbSniper v1.6.0 - Discord Orb farmer (GUI)
  * Copyright (c) 2026 synaps_ss - tg: @synaps_ss
  * Licensed under MIT. Use at your own risk. Violates Discord ToS.
  */
@@ -15,7 +15,7 @@ const net = require("net");
 const crypto = require("crypto");
 const WebSocket = require("ws");
 
-const VERSION = "1.5.0";
+const VERSION = "1.6.0";
 
 // 9222 is the conventional CDP port, which is exactly why it is so often taken
 // by some other Electron app. We try it first and fall back to a free one.

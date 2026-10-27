@@ -55,7 +55,7 @@ function renderLangMenu() {
     const code = document.createElement("span");
     code.className = "lm-code";
     code.textContent = l.tag;
-    b.append(name, code);
+    b.append(code, name);
     b.addEventListener("click", () => {
       lang = l.code;
       try { localStorage.setItem("orbsniper.lang", lang); } catch (_) {}
@@ -172,6 +172,8 @@ function setIdle() {
 function setProgress(pct) {
   $("bar").hidden = false;
   $("bar").value = pct;           // attribute, not inline style (keeps CSP strict)
+  // The ring uses pathLength="100", so the offset is simply what is left.
+  $("ring-val").setAttribute("stroke-dashoffset", String(100 - pct));
 }
 
 // ---------- quest summary ----------
@@ -399,6 +401,8 @@ document.addEventListener("DOMContentLoaded", () => {
   applyLang();
   setIdle();
   initGate();
+
+  window.sniper.getVersion().then((v) => { if (v) $("tb-ver").textContent = "v" + v; }).catch(() => {});
 
   $("btn-min").addEventListener("click", () => window.sniper.minimize());
   $("btn-close").addEventListener("click", () => window.sniper.close());

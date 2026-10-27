@@ -255,7 +255,7 @@ async function runEngine(opts) {
   console.log("\nOrbSniper test suite\n");
 
   console.log("syntax");
-  for (const f of ["main.js", "preload.js", "quest.js", "renderer/app.js", "renderer/i18n.js", "test/run.js"]) {
+  for (const f of ["main.js", "preload.js", "quest.js", "renderer/app.js", "renderer/i18n.js", "scripts/dist.js", "test/run.js"]) {
     await check(f + " parses", () => {
       execFileSync(process.execPath, ["--check", path.join(ROOT, f)], { stdio: "pipe" });
     });
@@ -367,6 +367,25 @@ async function runEngine(opts) {
   await check("a second injection evicts the first instead of lying", async () => {
     const { events } = await runEngine();
     assert(!events.some((e) => e.ev === "dup"), "fresh run should not report dup");
+  });
+
+  console.log("\nfast portable launch");
+  await check("the release build uses our portable launcher", () => {
+    const pkg = JSON.parse(read("package.json"));
+    assert(pkg.scripts.dist.includes("scripts/dist.js"),
+      "npm run dist bypasses scripts/dist.js - the exe would unpack on every launch again");
+    const dist = read("scripts/dist.js");
+    assert(dist.includes('"portable.nsi"') && dist.includes("nsisTemplatesDir"),
+      "scripts/dist.js no longer swaps in build/portable.nsi");
+  });
+  await check("the launcher unpacks once and reuses the cache", () => {
+    const nsi = read("build/portable.nsi");
+    assert(nsi.includes('${FileExists} "$cacheDir\\.complete"'), "no fast path for an already unpacked build");
+    assert(nsi.indexOf('FileOpen $0 "$INSTDIR\\.complete"') > nsi.indexOf("Nsis7z::Extract"),
+      "the cache is marked complete before the unpack has finished");
+    assert(nsi.includes("APP_64_HASH"), "the cache folder is not tied to the build, a new exe could run old files");
+    assert(!/^\s*ExecWait\b/m.test(nsi), "the launcher waits for the app, keeping a stub process around");
+    assert(nsi.includes("CreateMutex"), "two quick double-clicks could unpack into the same folder at once");
   });
 
   console.log("\nDiscord version picking");

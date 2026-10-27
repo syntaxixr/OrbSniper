@@ -11,10 +11,16 @@
 <header id="titlebar">
   <div class="tb-left">
     <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
-      <circle cx="16" cy="16" r="12" class="lg-ring"/>
-      <circle cx="16" cy="16" r="4.5" class="lg-core"/>
+      <defs>
+        <linearGradient id="lgTile" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#262a34"/><stop offset="1" stop-color="#0d0e12"/></linearGradient>
+        <radialGradient id="lgOrb" cx="36%" cy="30%" r="78%"><stop offset="0" stop-color="#fff2cc"/><stop offset=".3" stop-color="#ffcc66"/><stop offset=".7" stop-color="#ffa516"/><stop offset="1" stop-color="#c25c00"/></radialGradient>
+      </defs>
+      <rect x="0.5" y="0.5" width="31" height="31" rx="8" fill="url(#lgTile)" stroke="#ffffff" stroke-opacity=".08"/>
+      <path d="M16 3.6v4.2M16 24.2v4.2M3.6 16h4.2M24.2 16h4.2" stroke="#ffb02e" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="16" cy="16" r="6.6" fill="url(#lgOrb)"/>
     </svg>
     <span class="tb-name">OrbSniper</span>
+    <span class="tb-ver" id="tb-ver"></span>
   </div>
 
   <div class="tb-right">
@@ -39,26 +45,43 @@
 
 <main>
   <section class="status" id="status">
-    <div class="st-row">
-      <span class="beacon" id="beacon"></span>
-      <h1 id="status-text" data-i18n="st_idle">Готов к запуску</h1>
+    <div class="st-main">
+      <span class="beacon" id="beacon" aria-hidden="true"><i></i></span>
+      <div class="st-text">
+        <h1 id="status-text" data-i18n="st_idle">Готов к запуску</h1>
+        <p class="st-hint" id="status-hint" data-i18n="hint_idle">Нажми «Начать» — Discord перезапустится, квесты начнут приниматься и докручиваться сами.</p>
+      </div>
+      <!-- shown only while the bar is: see .status:has() in style.css -->
+      <div class="ring" aria-hidden="true">
+        <svg viewBox="0 0 64 64">
+          <circle class="rg-track" cx="32" cy="32" r="27"/>
+          <circle class="rg-val" id="ring-val" cx="32" cy="32" r="27" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+        </svg>
+        <span id="f-pct">0%</span>
+      </div>
     </div>
-    <p class="st-hint" id="status-hint" data-i18n="hint_idle">Нажми «Начать» — Discord перезапустится, квесты начнут приниматься и докручиваться сами.</p>
 
     <progress class="bar" id="bar" max="100" value="0" hidden></progress>
 
     <div class="facts" id="facts" hidden>
-      <span class="fact"><b id="f-target">—</b></span>
-      <span class="fact" id="f-pct">0%</span>
-      <span class="fact" id="f-time">0:00</span>
-      <span class="fact"><span data-i18n="f_claimed">забрано</span> <b id="f-claimed">0</b></span>
+      <span class="fact fq">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        <b id="f-target">—</b>
+      </span>
+      <span class="fact">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/></svg>
+        <span id="f-time">0:00</span>
+      </span>
+      <span class="fact">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8M2.5 7.5h19V12h-19zM12 21V7.5M12 7.5H8a2.5 2.5 0 1 1 0-5c3 0 4 5 4 5zM12 7.5h4a2.5 2.5 0 1 0 0-5c-3 0-4 5-4 5z"/></svg>
+        <span data-i18n="f_claimed">забрано</span> <b id="f-claimed">0</b>
+      </span>
     </div>
 
     <div class="tally" id="tally" hidden>
-      <span class="tl-item ok"><b id="tl-done">0</b> <span data-i18n="tl_done">выполнено</span></span>
-      <span class="tl-sep">·</span>
-      <span class="tl-item"><b id="tl-left">0</b> <span data-i18n="tl_left">осталось</span></span>
-      <span class="tl-manual" id="tl-manual" hidden><b id="tl-manual-n">0</b> <span data-i18n="tl_manual">забрать вручную</span></span>
+      <div class="tile ok"><b id="tl-done">0</b><span data-i18n="tl_done">выполнено</span></div>
+      <div class="tile"><b id="tl-left">0</b><span data-i18n="tl_left">осталось</span></div>
+      <div class="tile warn" id="tl-manual" hidden><b id="tl-manual-n">0</b><span data-i18n="tl_manual">забрать вручную</span></div>
     </div>
   </section>
 

@@ -1,5 +1,5 @@
 /*!
- * OrbSniper v1.5.0 - Discord Orb farmer (quest engine)
+ * OrbSniper v1.6.0 - Discord Orb farmer (quest engine)
  * Copyright (c) 2026 synaps_ss - tg: @synaps_ss
  * Licensed under MIT. Use at your own risk. Violates Discord ToS.
  */

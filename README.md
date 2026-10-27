@@ -33,7 +33,7 @@ No token, no game installs, no 500 GB downloads.
 <tr>
 <td width="50%">
 <img src="docs/screenshot-working.png" alt="OrbSniper farming quests">
-<p align="center"><b>Farming</b><br>Live progress, score and a console that speaks plain English</p>
+<p align="center"><b>Farming</b><br>Live progress ring, quest score and a console that speaks plain English</p>
 </td>
 <td width="50%">
 <img src="docs/screenshot-finish.png" alt="All quests finished">
@@ -103,6 +103,8 @@ OrbSniper never asks for your token and never reads it. Instead it relaunches **
 
 Grab `OrbSniper.exe` from [releases](../../releases/latest) and run it. No Node.js needed.
 
+The very first launch unpacks the app once (a few seconds, you'll see "Unpacking…"). Every launch after that opens in under a second.
+
 A risk disclaimer shows on every launch — read it, tick the box, continue.
 
 ## Run from source
@@ -129,8 +131,10 @@ npm run dist
 
 or just run `build.bat`. You get:
 
-- `dist\OrbSniper.exe` — single portable file, fine for a USB stick. Takes ~8 seconds to start: it unpacks itself into a temp folder every time.
-- `dist\win-unpacked\` — the unpacked build. Starts in under a second. Copy the folder anywhere and make a shortcut to `OrbSniper.exe`.
+- `dist\OrbSniper.exe` — single portable file, fine for a USB stick. On first launch it unpacks itself once into `%LOCALAPPDATA%\OrbSniper\runtime` (~7 s); after that it starts in about 0.4 s. A new build gets its own folder and the old one is cleaned up.
+- `dist\win-unpacked\` — the unpacked build. Copy the folder anywhere and make a shortcut to `OrbSniper.exe`.
+
+`npm run dist` goes through `scripts/dist.js`, which swaps electron-builder's stock portable launcher for `build/portable.nsi`. The stock one unpacked the whole app into a temp folder on every single launch, which is where the old 8-second start came from.
 
 ## Controls
 

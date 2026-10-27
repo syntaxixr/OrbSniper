@@ -19,6 +19,8 @@ Two practical consequences:
 - **The port stays open until Discord is restarted.** Closing OrbSniper does not close it. If you want it shut immediately, close Discord and open it again normally.
 - **The `DANGEROUS_ENABLE_DEVTOOLS_ONLY_ENABLE_IF_YOU_KNOW_WHAT_YOURE_DOING` flag stays in Discord's settings** after OrbSniper is gone. The original file is backed up next to it as `settings.json.orbsniper.bak`, and a settings file that cannot be parsed is left untouched instead of being overwritten. To undo the flag, set it to `false` or delete the line.
 
+The portable `OrbSniper.exe` unpacks itself once into `%LOCALAPPDATA%\OrbSniper\runtime\<version>-<hash>` and starts from there afterwards. The folder name carries the hash of the build, so a new exe never runs old files, and folders of older builds are deleted. Removing the whole `runtime` folder is safe: the next launch simply unpacks again.
+
 The port is no longer hardcoded to `9222`: if that one is busy, the app picks a free port in the `9222–9260` range instead of failing.
 
 ## Reporting a vulnerability

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Simplified mark for 16-32 px: the scope ring would turn to mush at that size. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#22262f"/>
+      <stop offset="1" stop-color="#0a0b0e"/>
+    </linearGradient>
+    <radialGradient id="orb" cx="36%" cy="30%" r="78%">
+      <stop offset="0" stop-color="#fff2cc"/>
+      <stop offset=".3" stop-color="#ffcc66"/>
+      <stop offset=".7" stop-color="#ffa516"/>
+      <stop offset="1" stop-color="#c25c00"/>
+    </radialGradient>
+  </defs>
+  <rect x="0.5" y="0.5" width="31" height="31" rx="8" fill="url(#tile)"/>
+  <g stroke="#ffb02e" stroke-width="2.6" stroke-linecap="round">
+    <path d="M16 3.6v4.2M16 24.2v4.2M3.6 16h4.2M24.2 16h4.2"/>
+  </g>
+  <circle cx="16" cy="16" r="6.6" fill="url(#orb)"/>
+</svg>
