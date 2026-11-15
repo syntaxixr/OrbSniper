@@ -5,12 +5,6 @@
 
 const GITHUB_URL = "https://github.com/syntaxixr/OrbSniper";
 const TELEGRAM_URL = "https://t.me/synaps_ss";
-const TOS_URL = "https://discord.com/terms";
-
-// Discord help centre locale codes; anything missing redirects to en-us
-const POLICY_LOCALE = { ru: "ru", en: "en-us", de: "de", fr: "fr", es: "es", pl: "pl", tr: "tr", pt: "pt-br", uk: "en-us", zh: "en-us" };
-const policyUrl = () =>
-  `https://support.discord.com/hc/${POLICY_LOCALE[lang] || "en-us"}/articles/115002192352`;
 
 const $ = (id) => document.getElementById(id);
 const LOG_LIMIT = 400;
@@ -358,35 +352,6 @@ function flash(btn, labelEl, key) {
   }, 1600);
 }
 
-// ---------- disclaimer ----------
-// Shown on every launch: the user has to confirm the risk each time.
-function closeGate() {
-  const gate = $("gate");
-  gate.classList.add("closing");
-  setTimeout(() => { gate.hidden = true; gate.classList.remove("closing"); }, 260);
-}
-
-function initGate() {
-  const gate = $("gate");
-  const box = $("agree-box");
-  box.checked = false;
-  $("btn-agree").disabled = true;
-  gate.hidden = false;
-
-  box.addEventListener("change", (e) => {
-    $("btn-agree").disabled = !e.target.checked;
-  });
-
-  $("btn-agree").addEventListener("click", () => {
-    if (!box.checked) return;
-    closeGate();
-  });
-
-  $("btn-quit").addEventListener("click", () => window.sniper.close());
-  $("lnk-policy").addEventListener("click", () => window.sniper.openExternal(policyUrl()));
-  $("lnk-tos").addEventListener("click", () => window.sniper.openExternal(TOS_URL));
-}
-
 // ---------- boot ----------
 document.addEventListener("DOMContentLoaded", () => {
   try {
@@ -400,7 +365,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   applyLang();
   setIdle();
-  initGate();
 
   window.sniper.getVersion().then((v) => { if (v) $("tb-ver").textContent = "v" + v; }).catch(() => {});
 

@@ -19,11 +19,6 @@ No token, no game installs, no 500 GB downloads.
 
 ---
 
-> [!CAUTION]
-> **Automating quests breaks Discord's rules.** Since April 2026 it is actively detected: first a warning, then quest access gets restricted, and repeat offences can suspend the account. Use an alt account. All risk is on you. This project exists for educational purposes.
->
-> Discord's policy: [Automated User Accounts (Self-Bots)](https://support.discord.com/hc/en-us/articles/115002192352)
-
 > [!IMPORTANT]
 > **From Russia you need a VPN.** Discord is blocked there: without a VPN neither the client nor the quest shop will load. Turn the VPN on before you start and keep it on while farming.
 
@@ -41,11 +36,6 @@ No token, no game installs, no 500 GB downloads.
 </td>
 </tr>
 </table>
-
-<div align="center">
-<img src="docs/screenshot-disclaimer.png" alt="Risk disclaimer on every launch" width="55%">
-<p><b>Every launch starts here</b> — the risks, Discord's own policy, and a box you have to tick</p>
-</div>
 
 ## What are Orbs?
 
@@ -104,8 +94,6 @@ OrbSniper never asks for your token and never reads it. Instead it relaunches **
 Grab `OrbSniper.exe` from [releases](../../releases/latest) and run it. No Node.js needed.
 
 The very first launch unpacks the app once (a few seconds, you'll see "Unpacking…"). Every launch after that opens in under a second.
-
-A risk disclaimer shows on every launch — read it, tick the box, continue.
 
 ## Run from source
 
@@ -178,9 +166,6 @@ If it still fails, press **Fix and restart** and send the console log (the **Cop
 
 **I use Discord PTB or Canary.**
 Supported, along with a Discord installed somewhere unusual — if it is already running, its real path is used.
-
-**Will this get me banned?**
-It can. Discord detects quest automation and punishes it — warning, quest restrictions, up to suspension. Use an account you can afford to lose.
 
 ## Author
 

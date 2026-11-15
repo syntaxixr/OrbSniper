@@ -178,10 +178,6 @@
       <span><b data-i18n="vpn_t">Из России — только с VPN.</b> <span data-i18n="vpn_b">Discord в России заблокирован: без VPN не откроется ни клиент, ни магазин с квестами и орбами. Включи VPN до нажатия «Начать» и не выключай, пока идёт фарм.</span></span>
     </div>
 
-    <div class="md-warn">
-      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>
-      <span data-i18n="help_warn">Автоматизация квестов нарушает правила Discord. С апреля 2026 её ловят: предупреждение, ограничение квестов, вплоть до блокировки. Используй запасной аккаунт — ответственность на тебе.</span>
-    </div>
   </div>
 </div>
 
@@ -265,55 +261,6 @@
 </div>
 
 <div class="toast" id="toast" hidden></div>
-
-<!-- disclaimer -->
-<div class="gate" id="gate">
-  <div class="gate-card">
-    <svg class="gate-mark" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 3l8 3.6v5c0 4.6-3.2 8.2-8 9.4-4.8-1.2-8-4.8-8-9.4v-5z"/>
-      <path d="M12 8.6v4.2M12 16.1h.01" class="gm-bang"/>
-    </svg>
-
-    <h1 class="gate-title shine" data-i18n="ob_title">Прежде чем начать</h1>
-    <p class="gate-lead" data-i18n="ob_lead">OrbSniper автоматизирует квесты за тебя. Discord это запрещает и умеет отслеживать.</p>
-
-    <ol class="risks">
-      <li><span class="rk rk-1"></span><span data-i18n="ob_r1">Сначала — предупреждение от Discord.</span></li>
-      <li><span class="rk rk-2"></span><span data-i18n="ob_r2">Потом — доступ к квестам закрывают.</span></li>
-      <li><span class="rk rk-3"></span><span data-i18n="ob_r3">При повторах — блокировка аккаунта.</span></li>
-    </ol>
-
-    <blockquote class="quote">
-      <span data-i18n="ob_quote">«Автоматизация пользовательского аккаунта нарушает Условия использования Discord и может привести к блокировке аккаунта».</span>
-      <cite>Discord · Automated User Accounts (Self-Bots)</cite>
-    </blockquote>
-
-    <div class="gate-links">
-      <button class="linkbtn" id="lnk-policy">
-        <span data-i18n="ob_link_policy">Правило Discord о самоботах</span>
-        <svg class="go" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
-      </button>
-      <button class="linkbtn" id="lnk-tos">
-        <span data-i18n="ob_link_tos">Условия использования</span>
-        <svg class="go" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
-      </button>
-    </div>
-
-    <label class="agree">
-      <input type="checkbox" id="agree-box">
-      <span data-i18n="ob_agree">Я понимаю риск и беру ответственность на себя. Буду использовать запасной аккаунт.</span>
-    </label>
-
-    <div class="gate-actions">
-      <button class="btn primary" id="btn-agree" disabled>
-        <span data-i18n="ob_accept">Согласен, продолжить</span>
-      </button>
-      <button class="btn" id="btn-quit">
-        <span data-i18n="ob_quit">Выйти</span>
-      </button>
-    </div>
-  </div>
-</div>
 
 <script src="i18n.js"></script>
 <script src="app.js"></script>

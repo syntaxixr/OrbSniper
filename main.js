@@ -1,7 +1,7 @@
 /*!
  * OrbSniper v1.6.0 - Discord Orb farmer (GUI)
  * Copyright (c) 2026 synaps_ss - tg: @synaps_ss
- * Licensed under MIT. Use at your own risk. Violates Discord ToS.
+ * Licensed under MIT.
  */
 
 const { app, BrowserWindow, ipcMain, clipboard, shell } = require("electron");

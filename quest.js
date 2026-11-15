@@ -1,7 +1,7 @@
 /*!
  * OrbSniper v1.6.0 - Discord Orb farmer (quest engine)
  * Copyright (c) 2026 synaps_ss - tg: @synaps_ss
- * Licensed under MIT. Use at your own risk. Violates Discord ToS.
+ * Licensed under MIT.
  */
 
 // Injected into the Discord desktop client over CDP.

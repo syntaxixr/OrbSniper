@@ -599,12 +599,6 @@ footer {
 
 .gate-lead { margin-top: 10px; color: var(--muted); font-size: 15px; }
 
-.risks { list-style: none; counter-reset: r; margin-top: 20px; display: flex; flex-direction: column; gap: 11px; }
-.risks li { display: flex; align-items: center; gap: 12px; font-size: 14.5px; }
-.rk { width: 30px; height: 5px; border-radius: 999px; flex: none; }
-.rk-1 { background: var(--warn); }
-.rk-2 { background: #f0964a; }
-.rk-3 { background: var(--danger); }
 
 .quote {
   margin-top: 20px; padding: 14px 16px;

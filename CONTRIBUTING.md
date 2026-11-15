@@ -50,7 +50,6 @@ Then:
 - Anything that reads, stores or transmits a Discord token. The whole point is that it never touches one.
 - Telemetry, analytics, "anonymous usage stats".
 - Bundled installers, adware, affiliate links.
-- Removing the risk disclaimer or the warnings about Discord's rules.
 
 ## Licence
 
