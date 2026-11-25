@@ -31,6 +31,12 @@
       </button>
       <div class="lang-menu" id="lang-menu" role="listbox" hidden></div>
     </div>
+    <button class="tb-btn" id="btn-quests" aria-label="Quest queue" title="Quest queue">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13"/><path d="m3 6 1 1 2-2M3 12l1 1 2-2M3 18l1 1 2-2"/></svg>
+    </button>
+    <button class="tb-btn" id="btn-settings" aria-label="Settings" title="Settings">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.7 2.94-.09-.02a1.7 1.7 0 0 0-1.7.64l-.05.08h-3.4l-.05-.08a1.7 1.7 0 0 0-1.7-.64l-.09.02-1.7-2.94.06-.06A1.7 1.7 0 0 0 7.4 15l-.08-.05v-3.4l.08-.05a1.7 1.7 0 0 0 .64-1.7l-.02-.09 2.94-1.7.06.06a1.7 1.7 0 0 0 1.88.34l.05-.08h3.4l.05.08a1.7 1.7 0 0 0 1.7.64l.09-.02 1.7 2.94-.06.06A1.7 1.7 0 0 0 19.4 15Z" transform="translate(-2 -2) scale(1.17)"/></svg>
+    </button>
     <button class="tb-btn" id="btn-help" aria-label="?">
       <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.3a2.9 2.9 0 0 1 5.6 1c0 1.9-2.8 2.4-2.8 4"/><path d="M12 17.4h.01"/></svg>
     </button>
@@ -72,6 +78,14 @@
         <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/></svg>
         <span id="f-time">0:00</span>
       </span>
+      <span class="fact" id="f-meta-box">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h6M7 16h8"/></svg>
+        <span id="f-meta">—</span>
+      </span>
+      <span class="fact">
+        <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 8h14M5 16h14"/></svg>
+        <span>ETA</span> <b id="f-remaining">—</b>
+      </span>
       <span class="fact">
         <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8M2.5 7.5h19V12h-19zM12 21V7.5M12 7.5H8a2.5 2.5 0 1 1 0-5c3 0 4 5 4 5zM12 7.5h4a2.5 2.5 0 1 0 0-5c-3 0-4 5-4 5z"/></svg>
         <span data-i18n="f_claimed">забрано</span> <b id="f-claimed">0</b>
@@ -82,6 +96,11 @@
       <div class="tile ok"><b id="tl-done">0</b><span data-i18n="tl_done">выполнено</span></div>
       <div class="tile"><b id="tl-left">0</b><span data-i18n="tl_left">осталось</span></div>
       <div class="tile warn" id="tl-manual" hidden><b id="tl-manual-n">0</b><span data-i18n="tl_manual">забрать вручную</span></div>
+    </div>
+
+    <div class="account-strip" id="account-strip" hidden>
+      <span class="account-name"><span class="account-label">Discord account</span><b id="f-account">—</b></span>
+      <span class="account-balance"><span class="orb-dot" aria-hidden="true"></span><b id="f-orbs">—</b><span>Orbs</span></span>
     </div>
   </section>
 
@@ -217,6 +236,49 @@
         <svg class="go" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M9 7h8v8"/></svg>
       </button>
     </div>
+  </div>
+</div>
+
+<div class="modal modal-wide" id="modal-quests" hidden role="dialog" aria-modal="true" aria-labelledby="quests-title">
+  <div class="md-head">
+    <h2 id="quests-title">Quest queue</h2>
+    <button class="md-x" data-close aria-label="Close"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="md-body">
+    <div class="queue-options">
+      <label class="setting-option compact"><input type="checkbox" id="setting-orb-only"><span><b>Only accept quests that pay Orbs</b><small>Quests without an Orb reward stay out of the queue.</small></span></label>
+      <label class="setting-option compact"><input type="checkbox" id="setting-prioritize"><span><b>Prioritize higher Orb rewards</b><small>Your manual queue order still takes priority.</small></span></label>
+    </div>
+    <p class="md-lead queue-lead">Choose which quests are eligible. Use the arrows to move a quest earlier or later in your queue. New quests are added automatically according to your reward priority. Changes to the current quest take effect after it finishes; already claimed rewards cannot be undone.</p>
+    <div class="quest-list" id="quest-list">
+      <div class="queue-empty">Start Discord and wait for the first quest scan. The list refreshes automatically.</div>
+    </div>
+    <div class="queue-total" id="queue-total">0 quests selected · 0 Orbs</div>
+  </div>
+</div>
+
+<div class="modal" id="modal-settings" hidden role="dialog" aria-modal="true" aria-labelledby="settings-title">
+  <div class="md-head">
+    <h2 id="settings-title">Settings</h2>
+    <button class="md-x" data-close aria-label="Close"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="md-body settings-body">
+    <label class="setting-option">
+      <input type="checkbox" id="setting-startup">
+      <span><b>Run when Windows starts</b><small>Launch OrbSniper automatically after you sign in to Windows.</small></span>
+    </label>
+    <label class="setting-option">
+      <input type="checkbox" id="setting-tray">
+      <span><b>Minimize to the system tray</b><small>The minimize and close buttons hide the window. The quest worker keeps running until you choose Quit from the tray menu.</small></span>
+    </label>
+    <label class="setting-option theme-option">
+      <span><b>Appearance</b><small>Choose the app theme.</small></span>
+      <select id="setting-theme" aria-label="Appearance">
+        <option value="dark">Dark</option>
+        <option value="light">Light</option>
+      </select>
+    </label>
+    <p class="settings-note">Settings are saved locally on this PC. Your queue choices are applied to the running quest worker immediately.</p>
   </div>
 </div>
 

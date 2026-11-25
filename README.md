@@ -134,7 +134,15 @@ or just run `build.bat`. You get:
 | **Fix and restart** | Appears when something breaks. Force-closes every Discord process, frees the debug port and starts over |
 | **?** | Instructions, FAQ and warnings |
 
-Close the window and farming stops. Discord keeps running.
+When **Minimize to system tray** is enabled, the window's minimize and close buttons hide OrbSniper in the Windows tray and the worker keeps running. Choose **Quit** from the tray menu to stop the worker and exit. With tray mode disabled, closing the app exits normally.
+
+## Quest manager and settings
+
+Open **Quest queue** to see available quests, their game/task type, duration, current status and Orb reward. Uncheck quests you do not want OrbSniper to process, use the arrows to arrange the queue, enable **Only accept quests that pay Orbs**, or let the app prioritize higher Orb rewards. Manual queue order takes priority over automatic reward sorting. Queue changes apply after the current quest finishes; a reward that has already been claimed cannot be undone.
+
+Open **Settings** to choose the light or dark appearance, launch OrbSniper when Windows starts, and minimize it to the system tray. These preferences and the quest queue are saved locally on your PC.
+
+While a quest is active, the elapsed timer updates every second and the app estimates time remaining from recent progress. The main screen also shows the Discord account name and Orb balance when the running Discord client exposes that information; the balance may be unavailable on some client builds.
 
 ## Languages
 

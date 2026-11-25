@@ -4,7 +4,7 @@
  * Licensed under MIT.
  */
 
-const { app, BrowserWindow, ipcMain, clipboard, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, clipboard, shell, Tray, Menu, nativeImage } = require("electron");
 
 const DONATE_ADDRESS = "TJXGAkovUoA2z9C7mWBiB9SGLVQu6oSsf";
 const { execFileSync, spawn } = require("child_process");
@@ -43,6 +43,151 @@ const state = {
   pending: new Map()    // CDP message id -> handler
 };
 
+const DEFAULT_SETTINGS = Object.freeze({
+  launchAtLogin: false,
+  minimizeToTray: false,
+  theme: "dark",
+  prioritizeOrbs: true,
+  orbOnly: false,
+  excludedQuestIds: [],
+  questOrder: []
+});
+let appSettings = { ...DEFAULT_SETTINGS };
+let tray = null;
+let isQuitting = false;
+
+function cleanIdList(value) {
+  return Array.isArray(value)
+    ? [...new Set(value.map(v => String(v)).filter(v => v && v.length <= 64))].slice(0, 300)
+    : [];
+}
+function normalizeSettings(value) {
+  const v = value && typeof value === "object" ? value : {};
+  return {
+    launchAtLogin: v.launchAtLogin === true,
+    minimizeToTray: v.minimizeToTray === true,
+    theme: v.theme === "light" ? "light" : "dark",
+    prioritizeOrbs: v.prioritizeOrbs !== false,
+    orbOnly: v.orbOnly === true,
+    excludedQuestIds: cleanIdList(v.excludedQuestIds),
+    questOrder: cleanIdList(v.questOrder)
+  };
+}
+function settingsPath() {
+  try { return path.join(app.getPath("userData"), "settings.json"); }
+  catch (_) { return null; }
+}
+function readSettings() {
+  try {
+    const file = settingsPath();
+    if (file && fs.existsSync(file)) return normalizeSettings(JSON.parse(fs.readFileSync(file, "utf8")));
+  } catch (_) {}
+  return { ...DEFAULT_SETTINGS };
+}
+function writeSettings() {
+  try {
+    const file = settingsPath();
+    if (!file) return;
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, JSON.stringify(appSettings, null, 2), "utf8");
+  } catch (e) {
+    uiLog("[!] Could not save settings: " + ((e && e.message) || e));
+  }
+}
+function questPreferences() {
+  return {
+    prioritizeOrbs: appSettings.prioritizeOrbs,
+    orbOnly: appSettings.orbOnly,
+    excludedQuestIds: appSettings.excludedQuestIds.slice(),
+    questOrder: appSettings.questOrder.slice()
+  };
+}
+function syncEnginePreferences() {
+  if (!state.running || !state.ws || state.ws.readyState !== WebSocket.OPEN) return;
+  const value = JSON.stringify(questPreferences());
+  evalInPage(`window.__ORB_PREFERENCES__ = ${value}; if (window.__ORB__) window.__ORB__.preferences = window.__ORB_PREFERENCES__;`);
+}
+function applyStartupSetting() {
+  if (process.platform !== "win32") return;
+  try {
+    const args = app.isPackaged ? [] : [app.getAppPath()];
+    if (appSettings.minimizeToTray) args.push("--hidden");
+    app.setLoginItemSettings({ openAtLogin: appSettings.launchAtLogin, path: process.execPath, args });
+  } catch (e) {
+    uiLog("[!] Could not update Windows startup setting: " + ((e && e.message) || e));
+  }
+}
+function ensureTray() {
+  if (tray) return true;
+  if (process.platform !== "win32") return false;
+  try {
+    const image = nativeImage.createFromPath(path.join(__dirname, "icon.ico"));
+    if (!image || image.isEmpty()) return false;
+    tray = new Tray(image.resize({ width: 16, height: 16 }));
+    tray.setToolTip("OrbSniper");
+    tray.setContextMenu(Menu.buildFromTemplate([
+      { label: "Open OrbSniper", click: showMainWindow },
+      { type: "separator" },
+      { label: state.running ? "Quest worker: running" : "Quest worker: stopped", enabled: false },
+      { type: "separator" },
+      { label: "Quit", click: quitApplication }
+    ]));
+    tray.on("click", showMainWindow);
+    tray.on("double-click", showMainWindow);
+    return true;
+  } catch (_) {
+    tray = null;
+    return false;
+  }
+}
+function syncTray() {
+  if (appSettings.minimizeToTray) ensureTray();
+  else if (tray) { try { tray.destroy(); } catch (_) {} tray = null; }
+}
+function updateTrayStatus() {
+  if (!tray) return;
+  try {
+    tray.setToolTip(state.running ? "OrbSniper — running" : "OrbSniper — stopped");
+    tray.setContextMenu(Menu.buildFromTemplate([
+      { label: "Open OrbSniper", click: showMainWindow },
+      { type: "separator" },
+      { label: state.running ? "Quest worker: running" : "Quest worker: stopped", enabled: false },
+      { type: "separator" },
+      { label: "Quit", click: quitApplication }
+    ]));
+  } catch (_) {}
+}
+function showMainWindow() {
+  if (!win || win.isDestroyed()) return;
+  win.show();
+  if (win.isMinimized()) win.restore();
+  win.focus();
+}
+function hideMainWindow() {
+  if (!win || win.isDestroyed()) return false;
+  if (appSettings.minimizeToTray && ensureTray()) { win.hide(); return true; }
+  win.minimize();
+  return false;
+}
+function quitApplication() {
+  if (isQuitting) return;
+  isQuitting = true;
+  const wasRunning = state.running;
+  if (wasRunning) stopFlow();
+  if (tray) { try { tray.destroy(); } catch (_) {} tray = null; }
+  // Let the stop flag reach Discord before Electron tears down its CDP socket.
+  if (wasRunning) setTimeout(() => app.quit(), 350);
+  else app.quit();
+}
+function saveSettings(patch) {
+  appSettings = normalizeSettings({ ...appSettings, ...(patch && typeof patch === "object" ? patch : {}) });
+  writeSettings();
+  applyStartupSetting();
+  syncTray();
+  syncEnginePreferences();
+  return { ...appSettings };
+}
+
 // ---------- UI helpers ----------
 function send(channel, payload) {
   if (win && !win.isDestroyed()) win.webContents.send(channel, payload);
@@ -50,7 +195,7 @@ function send(channel, payload) {
 function uiLog(msg) { send("sniper:log", msg); }
 function say(key, level, ...args) { send("sniper:say", { key, level, args }); }
 function phase(p) { send("sniper:phase", p); }
-function setRunning(v) { state.running = v; send("sniper:running", v); }
+function setRunning(v) { state.running = v; send("sniper:running", v); updateTrayStatus(); }
 
 // Every failure path must go through here. Leaving state.running true was what
 // wedged the UI: the Start button stayed disabled and runFlow() returned early
@@ -404,7 +549,9 @@ function injectEngine() {
 
   let code;
   try {
-    code = fs.readFileSync(path.join(__dirname, "quest.js"), "utf8").replace("__ORB_SESSION__", session);
+    const preferences = JSON.stringify(questPreferences());
+    code = `window.__ORB_PREFERENCES__ = ${preferences};\n` +
+      fs.readFileSync(path.join(__dirname, "quest.js"), "utf8").replace("__ORB_SESSION__", session);
   } catch (e) {
     state.injecting = false;
     fail("l_injectfail", "err", String((e && e.message) || e));
@@ -455,7 +602,16 @@ function handleEngineEvent(e) {
       send("sniper:tally", { total: e.total, done: e.done, left: e.left, manual: e.manual });
       return;
     case "progress":
-      send("sniper:progress", { quest: e.quest, task: e.task, done: e.done, need: e.need, elapsed: e.elapsed });
+      send("sniper:progress", { quest: e.quest, task: e.task, game: e.game, done: e.done, need: e.need, elapsed: e.elapsed });
+      return;
+    case "quests":
+      send("sniper:quests", e.quests || []);
+      return;
+    case "account":
+      send("sniper:account", e.account || null);
+      return;
+    case "balance":
+      send("sniper:balance", { value: e.value == null ? null : e.value });
       return;
     case "all_done":
       send("sniper:done", { done: e.done, manual: e.manual });
@@ -743,6 +899,8 @@ ipcMain.handle("sniper:repair", async () => {
 
 ipcMain.handle("sniper:stop", () => { stopFlow(); return true; });
 ipcMain.handle("sniper:skip", () => { evalInPage("window.__ORB__ && (window.__ORB__.skip = true)"); return true; });
+ipcMain.handle("app:getSettings", () => ({ ...appSettings }));
+ipcMain.handle("app:saveSettings", (_e, patch) => saveSettings(patch));
 ipcMain.handle("app:copy", (_e, text) => { clipboard.writeText(String(text || "")); return true; });
 ipcMain.handle("app:version", () => VERSION);
 ipcMain.handle("app:donateAddress", () => DONATE_ADDRESS);
@@ -752,8 +910,12 @@ ipcMain.handle("app:open", (_e, url) => {
   shell.openExternal(u);
   return true;
 });
-ipcMain.handle("win:minimize", () => { if (win) win.minimize(); });
-ipcMain.handle("win:close", () => { if (win) win.close(); });
+ipcMain.handle("win:minimize", () => hideMainWindow());
+ipcMain.handle("win:close", () => {
+  if (appSettings.minimizeToTray && ensureTray()) { if (win) win.hide(); return true; }
+  quitApplication();
+  return true;
+});
 
 // ---------- window ----------
 function createWindow() {
@@ -767,9 +929,9 @@ function createWindow() {
     // Shown straight away instead of on ready-to-show: the window is up a
     // good part of a second sooner, and painting it in the page's own
     // background colour means there is no white flash before the UI arrives.
-    backgroundColor: "#06070a",
+    backgroundColor: appSettings.theme === "light" ? "#f3f5f8" : "#06070a",
     icon: path.join(__dirname, "icon.ico"),
-    show: true,
+    show: !(process.argv.includes("--hidden") && appSettings.minimizeToTray),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -779,16 +941,33 @@ function createWindow() {
   });
   win.setMenuBarVisibility(false);
   win.loadFile(path.join(__dirname, "renderer", "index.html"));
+  win.on("close", (event) => {
+    if (!isQuitting && appSettings.minimizeToTray && ensureTray()) {
+      event.preventDefault();
+      win.hide();
+    }
+  });
   win.on("closed", () => { win = null; });
+  if (!win.isVisible() && appSettings.minimizeToTray) ensureTray();
 }
 
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
   app.quit();
 } else {
-  app.on("second-instance", () => {
-    if (win) { if (win.isMinimized()) win.restore(); win.focus(); }
+  app.on("second-instance", () => showMainWindow());
+  app.whenReady().then(() => {
+    appSettings = readSettings();
+    applyStartupSetting();
+    syncTray();
+    createWindow();
   });
-  app.whenReady().then(createWindow);
-  app.on("window-all-closed", () => app.quit());
+  app.on("activate", () => showMainWindow());
+  app.on("before-quit", () => {
+    isQuitting = true;
+    if (state.running) stopFlow();
+  });
+  app.on("window-all-closed", () => {
+    if (!appSettings.minimizeToTray) app.quit();
+  });
 }

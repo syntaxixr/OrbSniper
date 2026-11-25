@@ -35,7 +35,21 @@
     if (prev.alive) { emit({ ev: "dup" }); return; }
   }
 
-  const ORB = { alive: true, session: SESSION, skip: false, stop: false };
+  const DEFAULT_PREFERENCES = {
+    prioritizeOrbs: true,
+    orbOnly: false,
+    excludedQuestIds: [],
+    questOrder: []
+  };
+  const ORB = {
+    alive: true,
+    session: SESSION,
+    skip: false,
+    stop: false,
+    preferences: Object.assign({}, DEFAULT_PREFERENCES,
+      window.__ORB_PREFERENCES__ && typeof window.__ORB_PREFERENCES__ === "object"
+        ? window.__ORB_PREFERENCES__ : {})
+  };
   window.__ORB__ = ORB;
 
   const STALL_TIMEOUT_MS = 3 * 60 * 1000;   // auto-skip a quest with no progress
@@ -92,7 +106,9 @@
       RunningGameStore: ["getRunningGames", "getGameForPID"],
       ApplicationStreamingStore: ["getStreamerActiveStreamMetadata"],
       ChannelStore: ["getSortedPrivateChannels"],
-      GuildChannelStore: ["getAllGuilds"]
+      GuildChannelStore: ["getAllGuilds"],
+      UserStore: ["getCurrentUser"],
+      VirtualCurrencyStore: ["getCurrentBalance"]
     };
     const found = {};
 
@@ -187,6 +203,7 @@
 
     let api = null;
     let apiStyle = null;
+    let apiUser = null;
 
     for (const cand of apiCandidates) {
       for (const style of ["object", "positional"]) {
@@ -202,6 +219,7 @@
         if (!answersLikeApi(res)) continue;
         api = cand;
         apiStyle = style;
+        apiUser = res.body;
         break;
       }
       if (api) break;
@@ -231,6 +249,8 @@
     const ChannelStore = found.ChannelStore;
     const GuildChannelStore = found.GuildChannelStore;
 
+    await reportAccount();
+
     const manualClaim = new Set();
     const SUPPORTED = ["WATCH_VIDEO", "PLAY_ON_DESKTOP", "PLAY_ON_DESKTOP_V2", "STREAM_ON_DESKTOP", "PLAY_ACTIVITY", "WATCH_VIDEO_ON_MOBILE"];
     const isApp = typeof DiscordNative !== "undefined";
@@ -242,6 +262,129 @@
       return SUPPORTED.find((t) => tc && tc.tasks && tc.tasks[t] != null);
     };
     const nameOf = (quest) => quest?.config?.messages?.questName ?? "quest";
+
+    function orbRewardOf(quest) {
+      const rewards = quest?.config?.rewardsConfig?.rewards
+        ?? quest?.config?.rewards_config?.rewards
+        ?? [];
+      let orbs = 0;
+      let premiumOrbs = 0;
+      for (const reward of Array.isArray(rewards) ? rewards : []) {
+        const base = Number(reward?.orbQuantity ?? reward?.orb_quantity ?? 0);
+        const premium = Number(reward?.premiumOrbQuantity ?? reward?.premium_orb_quantity ?? 0);
+        if (Number.isFinite(base) && base > 0) orbs += base;
+        if (Number.isFinite(premium) && premium > 0) premiumOrbs += premium;
+      }
+      return { orbs, premiumOrbs };
+    }
+
+    function currentPreferences() {
+      const p = ORB.preferences && typeof ORB.preferences === "object" ? ORB.preferences : DEFAULT_PREFERENCES;
+      return {
+        prioritizeOrbs: p.prioritizeOrbs !== false,
+        orbOnly: p.orbOnly === true,
+        excludedQuestIds: new Set(Array.isArray(p.excludedQuestIds) ? p.excludedQuestIds.map(String) : []),
+        questOrder: Array.isArray(p.questOrder) ? p.questOrder.map(String) : []
+      };
+    }
+
+    function preferenceReason(quest) {
+      const p = currentPreferences();
+      if (p.excludedQuestIds.has(String(quest.id))) return "excluded";
+      if (p.orbOnly) {
+        const reward = orbRewardOf(quest);
+        if (reward.orbs <= 0 && reward.premiumOrbs <= 0) return "no_orbs";
+      }
+      return null;
+    }
+
+    function sortQuests(quests) {
+      const p = currentPreferences();
+      const positions = new Map(p.questOrder.map((id, index) => [id, index]));
+      return [...quests].sort((a, b) => {
+        const ai = positions.has(String(a.id)) ? positions.get(String(a.id)) : Number.MAX_SAFE_INTEGER;
+        const bi = positions.has(String(b.id)) ? positions.get(String(b.id)) : Number.MAX_SAFE_INTEGER;
+        if (ai !== bi) return ai - bi;
+        if (p.prioritizeOrbs) {
+          const ar = orbRewardOf(a);
+          const br = orbRewardOf(b);
+          const diff = Math.max(br.orbs, br.premiumOrbs) - Math.max(ar.orbs, ar.premiumOrbs);
+          if (diff) return diff;
+        }
+        const ae = new Date(a?.config?.expiresAt || 0).getTime() || Number.MAX_SAFE_INTEGER;
+        const be = new Date(b?.config?.expiresAt || 0).getTime() || Number.MAX_SAFE_INTEGER;
+        return ae - be;
+      });
+    }
+
+    function questSnapshot(quest) {
+      const task = taskOf(quest);
+      const tc = quest?.config?.taskConfig || quest?.config?.taskConfigV2;
+      const target = Number(tc?.tasks?.[task]?.target || 0);
+      const progress = Number(quest?.userStatus?.progress?.[task]?.value || 0);
+      const reward = orbRewardOf(quest);
+      const status = quest?.userStatus?.claimedAt ? "claimed"
+        : quest?.userStatus?.completedAt ? "completed"
+        : quest?.userStatus?.enrolledAt ? "enrolled" : "available";
+      return {
+        id: String(quest.id),
+        name: nameOf(quest),
+        game: quest?.config?.application?.name ?? quest?.config?.messages?.gameTitle ?? "",
+        task: task || "UNSUPPORTED",
+        target,
+        progress: Math.max(0, progress),
+        orbs: reward.orbs,
+        premiumOrbs: reward.premiumOrbs,
+        status,
+        expiresAt: quest?.config?.expiresAt ?? null
+      };
+    }
+
+    function numericBalance(value) {
+      if (typeof value === "number" && Number.isFinite(value)) return value;
+      if (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))) return Number(value);
+      if (value && typeof value === "object") {
+        for (const key of ["balance", "amount", "value", "quantity", "total"]) {
+          const n = numericBalance(value[key]);
+          if (n !== null) return n;
+        }
+      }
+      return null;
+    }
+
+    async function reportAccount() {
+      let user = apiUser;
+      try { user = found.UserStore?.getCurrentUser?.() || user; } catch (_) {}
+      const accountId = user?.id == null ? null : String(user.id);
+      if (user) {
+        emit({
+          ev: "account",
+          account: {
+            id: accountId,
+            username: user.username || user.globalName || user.global_name || user.tag || "",
+            displayName: user.globalName || user.global_name || user.username || "Discord account"
+          }
+        });
+      }
+
+      let balance = null;
+      try {
+        balance = numericBalance(
+          found.VirtualCurrencyStore?.getCurrentBalance?.() ?? found.VirtualCurrencyStore?.balance
+        );
+      } catch (_) {}
+      if (balance === null) {
+        try {
+          const response = await apiGet("/users/@me/virtual-currency/balance");
+          let currentUser = null;
+          try { currentUser = found.UserStore?.getCurrentUser?.()?.id ?? apiUser?.id ?? null; } catch (_) {}
+          if (accountId === null || currentUser === null || String(currentUser) === accountId) {
+            balance = numericBalance(response?.body?.balance);
+          }
+        } catch (_) {}
+      }
+      emit({ ev: "balance", value: balance });
+    }
 
     // Discord answers with plain objects, not Errors.
     // An error page is thousands of characters of markup. Never let it reach
@@ -383,7 +526,7 @@
           return null;
         };
         const report = () => emit({
-          ev: "progress", quest: questName, task: taskName,
+          ev: "progress", quest: questName, task: taskName, game: gameName,
           done: Math.round(secondsDone), need: secondsNeeded, elapsed: Date.now() - startedAt
         });
         const progress = (value) => {
@@ -569,6 +712,7 @@
     const enrollFailedAt = new Map();
     const claimFailedAt = new Map();
     const notifiedUnsupported = new Set();
+    const notifiedFiltered = new Set();
     let workedThisSession = false;
     let announcedIdle = false;
     let announcedDone = false;
@@ -577,7 +721,7 @@
     // subtract everything we had filed away, so a quest we abandoned vanished
     // from the count and the app announced that everything was finished.
     function tally(all) {
-      const doable = all.filter((q) => taskOf(q));
+      const doable = all.filter((q) => taskOf(q) && !preferenceReason(q));
       return {
         total: doable.length,
         done: doable.filter((q) => q.userStatus?.claimedAt).length,
@@ -591,11 +735,21 @@
       const now = Date.now();
       const all = [...QuestsStore.quests.values()]
         .filter((q) => { try { return new Date(q.config.expiresAt).getTime() > now; } catch (_) { return false; } });
+      const ordered = sortQuests(all);
+      emit({ ev: "quests", quests: ordered.map(questSnapshot) });
 
       // 1) claim what is already finished
-      for (const q of all) {
+      for (const q of ordered) {
         if (ORB.stop) return tally(all);
         if (processed.has(q.id)) continue;
+        const filterReason = preferenceReason(q);
+        if (filterReason) {
+          if (!notifiedFiltered.has(q.id)) {
+            notifiedFiltered.add(q.id);
+            emit({ ev: "quest_filtered", quest: nameOf(q), reason: filterReason });
+          }
+          continue;
+        }
         if (!q.userStatus?.completedAt) continue;
         if (q.userStatus.claimedAt) { processed.add(q.id); continue; }
         const failedAt = claimFailedAt.get(q.id) ?? 0;
@@ -609,10 +763,18 @@
         }
       }
 
-      // 2) work the active ones
-      for (const q of all) {
+      // 2) work the active ones in the saved queue order
+      for (const q of ordered) {
         if (ORB.stop) return tally(all);
         if (processed.has(q.id)) continue;
+        const filterReason = preferenceReason(q);
+        if (filterReason) {
+          if (!notifiedFiltered.has(q.id)) {
+            notifiedFiltered.add(q.id);
+            emit({ ev: "quest_filtered", quest: nameOf(q), reason: filterReason });
+          }
+          continue;
+        }
         if (q.userStatus?.completedAt) continue;
         if (now < (retryAt.get(q.id) ?? 0)) continue;
 
