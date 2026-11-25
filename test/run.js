@@ -261,6 +261,21 @@ async function runEngine(opts) {
     });
   }
 
+  await check("version and Windows auto-start are in sync", () => {
+    const pkg = JSON.parse(read("package.json"));
+    const lock = JSON.parse(read("package-lock.json"));
+    const main = read("main.js");
+    assert(pkg.version === "1.7.0", "package.json version is not 1.7.0");
+    assert(lock.version === pkg.version && lock.packages[""].version === pkg.version,
+      "package-lock.json version does not match package.json");
+    assert(main.includes('const VERSION = "1.7.0";'), "Electron UI version is not 1.7.0");
+    assert(main.includes('args.push("--autostart")'), "Windows login args do not enable farming startup");
+    assert(main.includes('runFlow({ startup: true })'), "login startup does not start the worker");
+    assert(/if \(startup\)\s*\{\s*\/\//.test(main) &&
+      main.includes('say("l_autostart_discord_running", "warn")'),
+      "auto-start must leave an already-running normal Discord instance untouched");
+  });
+
   console.log("\ntranslations");
   const { I18N, LANGS } = loadI18N();
   await check("every language in LANGS has a dictionary", () => {

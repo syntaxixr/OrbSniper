@@ -1,5 +1,5 @@
 /*!
- * OrbSniper v1.6.0 - Discord Orb farmer (GUI)
+ * OrbSniper v1.7.0 - Discord Orb farmer (GUI)
  * Copyright (c) 2026 synaps_ss - tg: @synaps_ss
  * Licensed under MIT.
  */
@@ -15,7 +15,7 @@ const net = require("net");
 const crypto = require("crypto");
 const WebSocket = require("ws");
 
-const VERSION = "1.6.0";
+const VERSION = "1.7.0";
 
 // 9222 is the conventional CDP port, which is exactly why it is so often taken
 // by some other Electron app. We try it first and fall back to a free one.
@@ -45,6 +45,7 @@ const state = {
 
 const DEFAULT_SETTINGS = Object.freeze({
   launchAtLogin: false,
+  autoStartFarming: false,
   minimizeToTray: false,
   theme: "dark",
   prioritizeOrbs: true,
@@ -64,7 +65,8 @@ function cleanIdList(value) {
 function normalizeSettings(value) {
   const v = value && typeof value === "object" ? value : {};
   return {
-    launchAtLogin: v.launchAtLogin === true,
+    autoStartFarming: v.autoStartFarming === true,
+    launchAtLogin: v.launchAtLogin === true || v.autoStartFarming === true,
     minimizeToTray: v.minimizeToTray === true,
     theme: v.theme === "light" ? "light" : "dark",
     prioritizeOrbs: v.prioritizeOrbs !== false,
@@ -111,6 +113,7 @@ function applyStartupSetting() {
   if (process.platform !== "win32") return;
   try {
     const args = app.isPackaged ? [] : [app.getAppPath()];
+    if (appSettings.autoStartFarming) args.push("--autostart");
     if (appSettings.minimizeToTray) args.push("--hidden");
     app.setLoginItemSettings({ openAtLogin: appSettings.launchAtLogin, path: process.execPath, args });
   } catch (e) {
@@ -787,7 +790,7 @@ async function preflight() {
 }
 
 // ---------- main flow ----------
-async function runFlow() {
+async function runFlow({ startup = false } = {}) {
   if (state.running) return;
   state.stopping = false;
   setRunning(true);
@@ -811,6 +814,15 @@ async function runFlow() {
     // Only restart Discord when it is actually running without the port. If it
     // is closed we just start it, and nothing has to be killed.
     if (discordPids().length > 0) {
+      if (startup) {
+        // On Windows login, never kill/relaunch a normal Discord instance:
+        // doing so causes the visible close/reopen cycle users asked to avoid.
+        // Disable Discord's own startup entry so OrbSniper can launch it with
+        // the debugging port after this app has initialized.
+        say("l_autostart_discord_running", "warn");
+        fail(null);
+        return;
+      }
       phase("closing");
       say("l_closing", "info");
       const closed = await killDiscordAndWait();
@@ -941,6 +953,13 @@ function createWindow() {
   });
   win.setMenuBarVisibility(false);
   win.loadFile(path.join(__dirname, "renderer", "index.html"));
+  if (process.argv.includes("--autostart") && appSettings.autoStartFarming) {
+    win.webContents.once("did-finish-load", () => {
+      if (isQuitting || !appSettings.autoStartFarming) return;
+      say("l_autostart_begin", "info");
+      runFlow({ startup: true });
+    });
+  }
   win.on("close", (event) => {
     if (!isQuitting && appSettings.minimizeToTray && ensureTray()) {
       event.preventDefault();

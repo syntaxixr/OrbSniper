@@ -15,7 +15,7 @@ let claimed = 0;
 let stickToBottom = true;
 let tally = { total: 0, done: 0, left: 0, manual: 0 };
 let appSettings = {
-  launchAtLogin: false, minimizeToTray: false, theme: "dark",
+  launchAtLogin: false, autoStartFarming: false, minimizeToTray: false, theme: "dark",
   prioritizeOrbs: true, orbOnly: false, excludedQuestIds: [], questOrder: []
 };
 let questItems = [];
@@ -343,13 +343,18 @@ function applyTheme() {
 }
 function syncSettingsControls() {
   $("setting-startup").checked = !!appSettings.launchAtLogin;
+  $("setting-auto-farm").checked = !!appSettings.autoStartFarming;
+  $("setting-auto-farm").disabled = !appSettings.launchAtLogin;
   $("setting-tray").checked = !!appSettings.minimizeToTray;
   $("setting-theme").value = appSettings.theme === "light" ? "light" : "dark";
   $("setting-orb-only").checked = !!appSettings.orbOnly;
   $("setting-prioritize").checked = appSettings.prioritizeOrbs !== false;
 }
 async function persistSettings(patch) {
-  appSettings = Object.assign({}, appSettings, patch || {});
+  const nextPatch = Object.assign({}, patch || {});
+  if (nextPatch.autoStartFarming === true) nextPatch.launchAtLogin = true;
+  if (nextPatch.launchAtLogin === false) nextPatch.autoStartFarming = false;
+  appSettings = Object.assign({}, appSettings, nextPatch);
   applyTheme();
   syncSettingsControls();
   renderQuestQueue();
@@ -682,6 +687,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("btn-settings").addEventListener("click", () => showModal("modal-settings"));
   $("btn-quests").addEventListener("click", () => showModal("modal-quests"));
   $("setting-startup").addEventListener("change", () => persistSettings({ launchAtLogin: $("setting-startup").checked }));
+  $("setting-auto-farm").addEventListener("change", () => persistSettings({ autoStartFarming: $("setting-auto-farm").checked }));
   $("setting-tray").addEventListener("change", () => persistSettings({ minimizeToTray: $("setting-tray").checked }));
   $("setting-theme").addEventListener("change", () => persistSettings({ theme: $("setting-theme").value }));
   $("setting-orb-only").addEventListener("change", () => persistSettings({ orbOnly: $("setting-orb-only").checked }));

@@ -18,6 +18,10 @@ const LANGS = [
 
 const I18N = {
   ru: {
+    setting_autofarm_title: "Начинать фарм при входе в Windows",
+    setting_autofarm_desc: "OrbSniper запустится первым и откроет Discord с портом отладки. Чтобы избежать перезапуска, отключи собственный автозапуск Discord в Диспетчере задач → Автозагрузка.",
+    l_autostart_begin: "Автозапуск Windows: запускаю фарм.",
+    l_autostart_discord_running: "Discord уже запущен без порта отладки. OrbSniper оставил его открытым. Отключи автозапуск Discord в Диспетчере задач → Автозагрузка и войди в Windows снова.",
     chk_elevated: "Запущено от имени администратора.",
     l_killdenied: "Discord не закрывается: у него больше прав, чем у OrbSniper. Закрой OrbSniper, нажми на нём правой кнопкой и выбери «Запуск от имени администратора».",
     l_manualcmd: "Можно запустить Discord вручную: закрой его полностью, нажми Win+R, вставь эту строку и Enter — {0}",
@@ -155,6 +159,10 @@ const I18N = {
   },
 
   en: {
+    setting_autofarm_title: "Start farming automatically",
+    setting_autofarm_desc: "OrbSniper starts first and launches Discord with its debugging port. Disable Discord's own startup entry in Task Manager > Startup apps to avoid a relaunch.",
+    l_autostart_begin: "Windows sign-in: starting OrbSniper farming automatically.",
+    l_autostart_discord_running: "Discord is already running without a debugging port. OrbSniper left it untouched. Disable Discord in Task Manager > Startup apps, then sign in again.",
     chk_elevated: "Running as administrator.",
     l_killdenied: "Discord won't close: it has more rights than OrbSniper. Close OrbSniper, right-click it and choose Run as administrator.",
     l_manualcmd: "You can start Discord by hand: close it fully, press Win+R, paste this line and hit Enter — {0}",
@@ -292,6 +300,10 @@ const I18N = {
   },
 
   zh: {
+    setting_autofarm_title: "登录 Windows 后自动开始刷取",
+    setting_autofarm_desc: "OrbSniper 会先启动，再通过调试端口启动 Discord。为避免 Discord 被关闭并重新打开，请在任务管理器 > 启动应用中关闭 Discord 的自启动。",
+    l_autostart_begin: "Windows 登录启动：正在自动开始刷取。",
+    l_autostart_discord_running: "Discord 已在没有调试端口的情况下运行。OrbSniper 未关闭它。请在任务管理器 > 启动应用中禁用 Discord，然后重新登录 Windows。",
     chk_elevated: "正在以管理员身份运行。",
     l_killdenied: "无法关闭 Discord：它的权限高于 OrbSniper。请关闭 OrbSniper，右键点击并选择「以管理员身份运行」。",
     l_manualcmd: "也可以手动启动 Discord：完全关闭它，按 Win+R，粘贴这一行并回车 — {0}",
@@ -429,6 +441,10 @@ const I18N = {
   },
 
   es: {
+    setting_autofarm_title: "Iniciar la minería automáticamente",
+    setting_autofarm_desc: "OrbSniper se inicia primero y abre Discord con su puerto de depuración. Desactiva el inicio automático de Discord en Administrador de tareas > Aplicaciones de inicio para evitar que se reinicie.",
+    l_autostart_begin: "Inicio de sesión de Windows: iniciando la minería automáticamente.",
+    l_autostart_discord_running: "Discord ya está abierto sin puerto de depuración. OrbSniper lo dejó intacto. Desactiva Discord en Administrador de tareas > Aplicaciones de inicio y vuelve a iniciar sesión.",
     chk_elevated: "Ejecutándose como administrador.",
     l_killdenied: "Discord no se cierra: tiene más permisos que OrbSniper. Cierra OrbSniper, haz clic derecho y elige Ejecutar como administrador.",
     l_manualcmd: "Puedes abrir Discord a mano: ciérralo del todo, pulsa Win+R, pega esta línea y Enter — {0}",
@@ -566,6 +582,10 @@ const I18N = {
   },
 
   pt: {
+    setting_autofarm_title: "Começar a farmar automaticamente",
+    setting_autofarm_desc: "O OrbSniper inicia primeiro e abre o Discord com a porta de depuração. Desative a inicialização automática do Discord em Gerenciador de Tarefas > Aplicativos de inicialização para evitar que ele seja reiniciado.",
+    l_autostart_begin: "Login do Windows: iniciando a coleta automaticamente.",
+    l_autostart_discord_running: "O Discord já está aberto sem uma porta de depuração. O OrbSniper não o fechou. Desative o Discord em Gerenciador de Tarefas > Aplicativos de inicialização e entre novamente no Windows.",
     chk_elevated: "Executando como administrador.",
     l_killdenied: "O Discord não fecha: ele tem mais permissões que o OrbSniper. Feche o OrbSniper, clique com o botão direito e escolha Executar como administrador.",
     l_manualcmd: "Dá para abrir o Discord à mão: feche-o por completo, aperte Win+R, cole esta linha e Enter — {0}",
@@ -703,6 +723,10 @@ const I18N = {
   },
 
   de: {
+    setting_autofarm_title: "Farmen automatisch starten",
+    setting_autofarm_desc: "OrbSniper startet zuerst und öffnet Discord mit Debugging-Port. Deaktiviere den Discord-Autostart im Task-Manager unter Autostart-Apps, damit Discord nicht neu gestartet werden muss.",
+    l_autostart_begin: "Windows-Anmeldung: OrbSniper startet das Farmen automatisch.",
+    l_autostart_discord_running: "Discord läuft bereits ohne Debugging-Port. OrbSniper hat es nicht beendet. Deaktiviere Discord im Task-Manager unter Autostart-Apps und melde dich erneut bei Windows an.",
     chk_elevated: "Läuft als Administrator.",
     l_killdenied: "Discord lässt sich nicht schließen: es hat mehr Rechte als OrbSniper. Schließe OrbSniper, Rechtsklick darauf und „Als Administrator ausführen“ wählen.",
     l_manualcmd: "Discord geht auch von Hand: ganz schließen, Win+R drücken, diese Zeile einfügen und Enter — {0}",
@@ -840,6 +864,10 @@ const I18N = {
   },
 
   fr: {
+    setting_autofarm_title: "Démarrer automatiquement la collecte",
+    setting_autofarm_desc: "OrbSniper démarre en premier et lance Discord avec son port de débogage. Désactive le démarrage automatique de Discord dans le Gestionnaire des tâches > Applications de démarrage pour éviter son redémarrage.",
+    l_autostart_begin: "Ouverture de session Windows : démarrage automatique de la collecte.",
+    l_autostart_discord_running: "Discord est déjà ouvert sans port de débogage. OrbSniper l'a laissé ouvert. Désactive Discord dans le Gestionnaire des tâches > Applications de démarrage, puis reconnecte-toi à Windows.",
     chk_elevated: "Lancé en administrateur.",
     l_killdenied: "Discord refuse de se fermer : il a plus de droits qu'OrbSniper. Ferme OrbSniper, clic droit dessus et choisis Exécuter en tant qu'administrateur.",
     l_manualcmd: "Tu peux lancer Discord à la main : ferme-le complètement, fais Win+R, colle cette ligne et Entrée — {0}",
@@ -977,6 +1005,10 @@ const I18N = {
   },
 
   pl: {
+    setting_autofarm_title: "Automatycznie rozpoczynaj zdobywanie Orbów",
+    setting_autofarm_desc: "OrbSniper uruchomi się pierwszy i otworzy Discorda z portem debugowania. Aby uniknąć ponownego uruchamiania Discorda, wyłącz jego autostart w Menedżerze zadań > Aplikacje uruchamiane przy starcie.",
+    l_autostart_begin: "Logowanie do Windows: automatycznie uruchamiam zdobywanie Orbów.",
+    l_autostart_discord_running: "Discord jest już uruchomiony bez portu debugowania. OrbSniper go nie zamknął. Wyłącz autostart Discorda w Menedżerze zadań > Aplikacje uruchamiane przy starcie i zaloguj się ponownie.",
     chk_elevated: "Uruchomiono jako administrator.",
     l_killdenied: "Discord się nie zamyka: ma wyższe uprawnienia niż OrbSniper. Zamknij OrbSniper, kliknij prawym i wybierz Uruchom jako administrator.",
     l_manualcmd: "Discorda można uruchomić ręcznie: zamknij go całkiem, naciśnij Win+R, wklej tę linię i Enter — {0}",
@@ -1114,6 +1146,10 @@ const I18N = {
   },
 
   tr: {
+    setting_autofarm_title: "Windows açıldığında otomatik farm başlat",
+    setting_autofarm_desc: "OrbSniper önce başlar ve Discord'u hata ayıklama bağlantı noktasıyla açar. Yeniden başlatmayı önlemek için Görev Yöneticisi > Başlangıç uygulamaları bölümünde Discord'un kendi başlangıcını kapat.",
+    l_autostart_begin: "Windows oturumu açıldı: OrbSniper otomatik olarak başlatılıyor.",
+    l_autostart_discord_running: "Discord hata ayıklama bağlantı noktası olmadan zaten çalışıyor. OrbSniper onu kapatmadı. Görev Yöneticisi > Başlangıç uygulamaları bölümünde Discord'u devre dışı bırakıp yeniden oturum aç.",
     chk_elevated: "Yönetici olarak çalışıyor.",
     l_killdenied: "Discord kapanmıyor: OrbSniper'dan daha yüksek yetkisi var. OrbSniper'ı kapat, sağ tıkla ve Yönetici olarak çalıştır'ı seç.",
     l_manualcmd: "Discord'u elle başlatabilirsin: tamamen kapat, Win+R yap, bu satırı yapıştır ve Enter — {0}",
@@ -1251,6 +1287,10 @@ const I18N = {
   },
 
   uk: {
+    setting_autofarm_title: "Автоматично починати фарм під час входу в Windows",
+    setting_autofarm_desc: "OrbSniper запуститься першим і відкриє Discord з портом налагодження. Щоб уникнути перезапуску, вимкни власний автозапуск Discord у Диспетчері завдань > Автозавантаження.",
+    l_autostart_begin: "Вхід у Windows: автоматично запускаю фарм.",
+    l_autostart_discord_running: "Discord уже запущено без порту налагодження. OrbSniper залишив його відкритим. Вимкни автозапуск Discord у Диспетчері завдань > Автозавантаження та увійди до Windows знову.",
     chk_elevated: "Запущено від імені адміністратора.",
     l_killdenied: "Discord не закривається: у нього більше прав, ніж у OrbSniper. Закрий OrbSniper, натисни на ньому правою кнопкою і обери «Запуск від імені адміністратора».",
     l_manualcmd: "Можна запустити Discord вручну: закрий його повністю, натисни Win+R, встав цей рядок і Enter — {0}",

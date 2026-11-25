@@ -1,6 +1,6 @@
 {
   "name": "orbsniper",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "OrbSniper farms Discord Orbs for you. Auto-accepts, completes and claims Discord Quests while you AFK. No token needed.",
   "keywords": [
     "discord",

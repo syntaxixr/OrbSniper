@@ -140,7 +140,7 @@ When **Minimize to system tray** is enabled, the window's minimize and close but
 
 Open **Quest queue** to see available quests, their game/task type, duration, current status and Orb reward. Uncheck quests you do not want OrbSniper to process, use the arrows to arrange the queue, enable **Only accept quests that pay Orbs**, or let the app prioritize higher Orb rewards. Manual queue order takes priority over automatic reward sorting. Queue changes apply after the current quest finishes; a reward that has already been claimed cannot be undone.
 
-Open **Settings** to choose the light or dark appearance, launch OrbSniper when Windows starts, and minimize it to the system tray. These preferences and the quest queue are saved locally on your PC.
+Open **Settings** to choose the light or dark appearance, launch OrbSniper when Windows starts, and minimize it to the system tray. Enable **Start farming automatically** as well to begin the worker at sign-in. For OrbSniper to launch Discord first with the debugging port, disable Discord's own entry under **Task Manager → Startup apps**. If Discord is already running without a debugging port, auto-start leaves it untouched and shows a warning rather than closing and reopening it. These preferences and the quest queue are saved locally on your PC.
 
 While a quest is active, the elapsed timer updates every second and the app estimates time remaining from recent progress. The main screen also shows the Discord account name and Orb balance when the running Discord client exposes that information; the balance may be unavailable on some client builds.
 
