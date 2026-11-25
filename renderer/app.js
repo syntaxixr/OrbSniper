@@ -14,6 +14,13 @@ let running = false;
 let claimed = 0;
 let stickToBottom = true;
 let tally = { total: 0, done: 0, left: 0, manual: 0 };
+let appSettings = {
+  launchAtLogin: false, autoStartFarming: false, minimizeToTray: false, theme: "dark",
+  prioritizeOrbs: true, orbOnly: false, excludedQuestIds: [], questOrder: []
+};
+let questItems = [];
+let currentProgress = null;
+let currentProgressAt = 0;
 
 // ---------- i18n ----------
 function t(key, ...args) {
@@ -72,6 +79,12 @@ function closeLangMenu() {
 // counter, for one, never moved on German, French, Polish or Turkish.
 // Now the engine sends structured events and the text is built from the key.
 const EVENTS = {
+  // Metadata is forwarded through dedicated preload listeners; these entries
+  // also keep the engine-to-UI event contract explicit and testable.
+  quests:         ()  => ["l_watching", "info"],
+  account:        ()  => ["l_watching", "info"],
+  balance:        ()  => ["l_watching", "info"],
+  quest_filtered: (e) => ["l_skipped", "warn", e.quest],
   started:       ()  => ["l_watching", "info"],
   takeover:      ()  => ["l_takeover", "info"],
   dup:           ()  => ["l_dup", "warn"],
@@ -109,6 +122,17 @@ const EVENTS = {
 
 function onEngineEvent(e) {
   if (!e || !e.ev) return;
+
+  if (e.ev === "quest_filtered") {
+    const reason = e.reason === "no_orbs" ? "has no Orb reward" : "is excluded from your queue";
+    pushLine(`Skipped ${e.quest}: ${reason}.`, "warn");
+    return;
+  }
+
+  if (e.ev === "quest_done") {
+    currentProgress = null;
+    $("f-remaining").textContent = "0:00";
+  }
 
   if (e.ev === "claimed") {
     claimed++;
@@ -155,6 +179,7 @@ function setStatus(title, hint, beacon, stateCls) {
 }
 
 function setIdle() {
+  currentProgress = null;
   running = false;
   setStatus(t("st_idle"), t("hint_idle"), "", "");
   $("bar").hidden = true;
@@ -300,20 +325,200 @@ function setPhase(phase) {
   setButtons();
 }
 
-// ---------- current quest ----------
+// ---------- quest queue and appearance ----------
 const fmtTime = (ms) => {
-  const s = Math.max(0, Math.floor(ms / 1000));
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const sec = total % 60;
+  return h ? `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`
+    : `${m}:${String(sec).padStart(2, "0")}`;
 };
+const fmtSeconds = (seconds) => fmtTime(Math.max(0, Number(seconds) || 0) * 1000);
+const orbCount = (q) => Math.max(0, Number(q && q.orbs) || 0);
+const premiumOrbCount = (q) => Math.max(0, Number(q && q.premiumOrbs) || 0);
 
+function applyTheme() {
+  document.documentElement.dataset.theme = appSettings.theme === "light" ? "light" : "dark";
+}
+function syncSettingsControls() {
+  $("setting-startup").checked = !!appSettings.launchAtLogin;
+  $("setting-auto-farm").checked = !!appSettings.autoStartFarming;
+  $("setting-auto-farm").disabled = !appSettings.launchAtLogin;
+  $("setting-tray").checked = !!appSettings.minimizeToTray;
+  $("setting-theme").value = appSettings.theme === "light" ? "light" : "dark";
+  $("setting-orb-only").checked = !!appSettings.orbOnly;
+  $("setting-prioritize").checked = appSettings.prioritizeOrbs !== false;
+}
+async function persistSettings(patch) {
+  const nextPatch = Object.assign({}, patch || {});
+  if (nextPatch.autoStartFarming === true) nextPatch.launchAtLogin = true;
+  if (nextPatch.launchAtLogin === false) nextPatch.autoStartFarming = false;
+  appSettings = Object.assign({}, appSettings, nextPatch);
+  applyTheme();
+  syncSettingsControls();
+  renderQuestQueue();
+  try {
+    const saved = await window.sniper.saveSettings(appSettings);
+    if (saved) appSettings = Object.assign({}, appSettings, saved);
+    applyTheme();
+    syncSettingsControls();
+    renderQuestQueue();
+  } catch (_) {
+    toast("Could not save settings.");
+  }
+}
+function orderedQuestItems() {
+  const order = new Map((appSettings.questOrder || []).map((id, i) => [String(id), i]));
+  return [...questItems].sort((a, b) => {
+    const ai = order.has(String(a.id)) ? order.get(String(a.id)) : Number.MAX_SAFE_INTEGER;
+    const bi = order.has(String(b.id)) ? order.get(String(b.id)) : Number.MAX_SAFE_INTEGER;
+    if (ai !== bi) return ai - bi;
+    if (appSettings.prioritizeOrbs) {
+      const rewardDiff = Math.max(orbCount(b), premiumOrbCount(b)) - Math.max(orbCount(a), premiumOrbCount(a));
+      if (rewardDiff) return rewardDiff;
+    }
+    const ae = Date.parse(a.expiresAt || "") || Number.MAX_SAFE_INTEGER;
+    const be = Date.parse(b.expiresAt || "") || Number.MAX_SAFE_INTEGER;
+    return ae - be;
+  });
+}
+function renderQuestQueue() {
+  const container = $("quest-list");
+  if (!container) return;
+  container.replaceChildren();
+  const ordered = orderedQuestItems();
+  if (!ordered.length) {
+    const empty = document.createElement("div");
+    empty.className = "queue-empty";
+    empty.textContent = "No quests received yet. Start OrbSniper and wait for Discord's next quest scan.";
+    container.append(empty);
+    $("queue-total").textContent = "0 quests selected · 0 Orbs";
+    return;
+  }
+
+  const excluded = new Set((appSettings.excludedQuestIds || []).map(String));
+  let selectedCount = 0;
+  let selectedOrbs = 0;
+  let selectedPremiumOrbs = 0;
+
+  ordered.forEach((q, index) => {
+    const id = String(q.id);
+    const reward = orbCount(q);
+    const premium = premiumOrbCount(q);
+    const allowed = !excluded.has(id);
+    const eligible = allowed && (!appSettings.orbOnly || reward > 0 || premium > 0);
+    if (eligible) {
+      selectedCount++;
+      selectedOrbs += reward;
+      selectedPremiumOrbs += premium;
+    }
+
+    const row = document.createElement("div");
+    row.className = "quest-row" + (allowed ? "" : " excluded");
+
+    const include = document.createElement("input");
+    include.type = "checkbox";
+    include.className = "quest-include";
+    include.checked = allowed;
+    include.setAttribute("aria-label", `Include ${q.name} in the quest queue`);
+    include.addEventListener("change", () => {
+      const next = new Set((appSettings.excludedQuestIds || []).map(String));
+      if (include.checked) next.delete(id); else next.add(id);
+      persistSettings({ excludedQuestIds: [...next] });
+    });
+
+    const info = document.createElement("div");
+    info.className = "quest-info";
+    const title = document.createElement("div");
+    title.className = "quest-title";
+    title.textContent = q.name || "Discord Quest";
+    const details = document.createElement("div");
+    details.className = "quest-sub";
+    const duration = q.target ? fmtSeconds(q.target) : "duration unknown";
+    const game = q.game || "Discord";
+    const task = String(q.task || "task").replace(/_/g, " ").toLowerCase();
+    details.textContent = `${game} · ${task} · ${duration}`;
+    info.append(title, details);
+
+    const rewardEl = document.createElement("div");
+    rewardEl.className = "quest-reward" + (reward + premium > 0 ? "" : " no-orbs");
+    rewardEl.textContent = reward + premium > 0
+      ? `${reward.toLocaleString()} Orbs${premium ? ` + ${premium.toLocaleString()} Premium` : ""}`
+      : "No Orb reward";
+
+    const status = document.createElement("div");
+    status.className = "quest-status";
+    status.textContent = q.status || "available";
+
+    const actions = document.createElement("div");
+    actions.className = "quest-actions";
+    const up = document.createElement("button");
+    up.type = "button";
+    up.className = "queue-move";
+    up.textContent = "↑";
+    up.title = "Move earlier";
+    up.disabled = index === 0;
+    up.addEventListener("click", () => moveQuest(id, -1));
+    const down = document.createElement("button");
+    down.type = "button";
+    down.className = "queue-move";
+    down.textContent = "↓";
+    down.title = "Move later";
+    down.disabled = index === ordered.length - 1;
+    down.addEventListener("click", () => moveQuest(id, 1));
+    actions.append(up, down);
+
+    row.append(include, info, rewardEl, status, actions);
+    container.append(row);
+  });
+
+  const premiumText = selectedPremiumOrbs ? ` · + ${selectedPremiumOrbs.toLocaleString()} Premium Orbs` : "";
+  $("queue-total").textContent =
+    `${selectedCount} quests selected · ${selectedOrbs.toLocaleString()} Orbs${premiumText}`;
+}
+function moveQuest(id, delta) {
+  const ordered = orderedQuestItems().map(q => String(q.id));
+  const from = ordered.indexOf(String(id));
+  const to = from + delta;
+  if (from < 0 || to < 0 || to >= ordered.length) return;
+  [ordered[from], ordered[to]] = [ordered[to], ordered[from]];
+  persistSettings({ questOrder: ordered });
+}
+
+// ---------- current quest ----------
+function tickProgress() {
+  if (!currentProgress) return;
+  const p = currentProgress;
+  const elapsed = Math.max(0, Number(p.elapsed) || 0) + Math.max(0, Date.now() - currentProgressAt);
+  const done = Math.max(0, Number(p.done) || 0);
+  const need = Math.max(0, Number(p.need) || 0);
+  const elapsedSinceStart = Math.max(0, elapsed - (p.baseElapsed || 0)) / 1000;
+  const progressSinceStart = Math.max(0, done - (p.baseDone || 0));
+  const rate = elapsedSinceStart >= 3 && progressSinceStart > 0
+    ? Math.max(0.1, Math.min(3, progressSinceStart / elapsedSinceStart))
+    : 1;
+  const remaining = need > done ? (need - done) / rate : 0;
+  $("f-time").textContent = fmtTime(elapsed);
+  $("f-remaining").textContent = need ? fmtSeconds(remaining) : "—";
+}
 function updateQuest(p) {
   if (!p || !p.quest) return;
+  if (!currentProgress || currentProgress.quest !== p.quest) {
+    currentProgress = { ...p, baseDone: Number(p.done) || 0, baseElapsed: Number(p.elapsed) || 0 };
+  } else {
+    currentProgress = { ...currentProgress, ...p };
+  }
+  currentProgressAt = Date.now();
+
   const pct = p.need > 0 ? Math.min(100, Math.round((p.done / p.need) * 100)) : 0;
   setProgress(pct);
   $("facts").hidden = false;
   $("f-target").textContent = p.quest;
   $("f-pct").textContent = pct + "%";
-  $("f-time").textContent = fmtTime(p.elapsed);
+  const task = String(p.task || "").replace(/_/g, " ").toLowerCase();
+  $("f-meta").textContent = [p.game, task].filter(Boolean).join(" · ") || "Discord Quest";
+  tickProgress();
   $("status-text").textContent = t("st_running");
   $("status-hint").textContent = t("hint_quest", p.quest);
 }
@@ -365,6 +570,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   applyLang();
   setIdle();
+  applyTheme();
+  window.sniper.getSettings().then((saved) => {
+    if (saved) appSettings = Object.assign({}, appSettings, saved);
+    applyTheme();
+    syncSettingsControls();
+    renderQuestQueue();
+  }).catch(() => {});
+  setInterval(tickProgress, 1000);
 
   window.sniper.getVersion().then((v) => { if (v) $("tb-ver").textContent = "v" + v; }).catch(() => {});
 
@@ -383,6 +596,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const beginRun = () => {
+    currentProgress = null;
     running = true;
     claimed = 0;
     tally = { total: 0, done: 0, left: 0, manual: 0 };
@@ -470,6 +684,14 @@ document.addEventListener("DOMContentLoaded", () => {
   $("gh-handle").textContent = GITHUB_URL.replace(/^https:\/\/github\.com\//, "");
 
   $("btn-help").addEventListener("click", () => showModal("modal-help"));
+  $("btn-settings").addEventListener("click", () => showModal("modal-settings"));
+  $("btn-quests").addEventListener("click", () => showModal("modal-quests"));
+  $("setting-startup").addEventListener("change", () => persistSettings({ launchAtLogin: $("setting-startup").checked }));
+  $("setting-auto-farm").addEventListener("change", () => persistSettings({ autoStartFarming: $("setting-auto-farm").checked }));
+  $("setting-tray").addEventListener("change", () => persistSettings({ minimizeToTray: $("setting-tray").checked }));
+  $("setting-theme").addEventListener("change", () => persistSettings({ theme: $("setting-theme").value }));
+  $("setting-orb-only").addEventListener("change", () => persistSettings({ orbOnly: $("setting-orb-only").checked }));
+  $("setting-prioritize").addEventListener("change", () => persistSettings({ prioritizeOrbs: $("setting-prioritize").checked }));
   $("btn-donate").addEventListener("click", () => showModal("modal-donate"));
   $("scrim").addEventListener("click", closeModal);
   document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", closeModal));
@@ -487,6 +709,21 @@ document.addEventListener("DOMContentLoaded", () => {
   window.sniper.onEvent(onEngineEvent);
   window.sniper.onPhase(setPhase);
   window.sniper.onProgress(updateQuest);
+  window.sniper.onQuests((items) => {
+    questItems = Array.isArray(items) ? items : [];
+    renderQuestQueue();
+  });
+  window.sniper.onAccount((account) => {
+    if (!account) return;
+    const name = account.displayName || account.username || "Discord account";
+    const username = account.username && account.username !== name ? ` · @${account.username}` : "";
+    $("f-account").textContent = name + username;
+    $("account-strip").hidden = false;
+  });
+  window.sniper.onBalance(({ value }) => {
+    $("f-orbs").textContent = value == null ? "—" : Number(value).toLocaleString();
+    if (value != null) $("account-strip").hidden = false;
+  });
   window.sniper.onTally(renderTally);
   window.sniper.onRunning((isRunning) => { running = isRunning; setButtons(); });
 
